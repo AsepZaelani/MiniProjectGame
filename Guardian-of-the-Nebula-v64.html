@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="dark">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Guardian of the Nebula</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="Guardian-of-the-Nebula-v64.css">
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div id="hud">
+    <div class="col">
+      <div class="score chip">SKOR <span id="scoreVal">0</span></div>
+      <div class="lives chip">HP <span id="livesVal">100%</span></div>
+      <div class="chip" id="killChip" style="display:none;">KILLS <span id="killsVal">0</span><small id="waveEnemyCount">MUSUH 0/0</small></div>
+    </div>
+    <div class="col">
+      <div class="coins chip">💰 <span id="coinVal">0</span></div>
+      <div class="level chip">LV <span id="levelVal">1</span></div>
+      <div id="comboTag">COMBO x0</div>
+    </div>
+  </div>
+  <div id="planetTag">VEYRA · SECTOR 01</div>
+  <div id="bossBarWrap"><div id="bossLabel">BOSS</div><div id="bossBarBg"><div id="bossBarFill"></div></div></div>
+  <div id="hpWrap"><div id="hpLabel">HP 100%</div><div id="hpBg"><div id="hpFill"></div></div></div>
+  <button id="pauseBtn" aria-label="Pause">Ⅱ</button>
+  <div id="waveTag" style="display:none;"><span id="waveTagText">MUSUH 0/100</span><div id="waveBarBg"><div id="waveBarFill"></div></div></div>
+  <div id="levelBanner"></div>
+  <div id="achieveToast"></div>
+  <div id="enemyIntroToast"></div>
+  <div id="bigBanner"><div class="bb-inner"><div class="bb-scan"></div><div class="bb-tag" id="bbTag"></div><div class="bb-title" id="bbTitle"></div><div class="bb-sub" id="bbSub"></div></div></div>
+  <div id="screenFlash"></div>
+  <div id="energyMeter"><span class="meter-icon">⚡</span><span class="meter-label">ENERGY</span><div class="meter-bg"><div id="energyFill" class="meter-fill"></div></div></div>
+  <div id="armorMeter"><span class="meter-icon">🛡</span><span class="meter-label">ARMOR</span><div class="meter-bg"><div id="armorFill" class="meter-fill"></div></div></div>
+  <div id="rapidBuffBadge"><span class="buff-icon">⚡</span><div class="buff-bar-bg"><div id="rapidBuffFill" class="buff-bar-fill"></div></div></div>
+  <div id="shieldBuffBadge"><span class="buff-icon">🛡</span><div class="buff-bar-bg"><div id="shieldBuffFill" class="buff-bar-fill"></div></div></div>
+  <div id="astroCombatHud">
+    <div class="combat-weapon-box" id="laserFireBtn" role="button" aria-label="Tembak laser" tabindex="0"><span class="combat-icon" id="combatWeaponIcon">🔫</span><div class="combat-label">LASER</div><div class="combat-name" id="combatWeaponName">BLASTER STANDAR</div></div>
+    <div class="combat-weapon-box right" id="rocketFireBtn" role="button" aria-label="Luncurkan roket" tabindex="0"><span class="combat-icon" id="combatRocketIcon">🚀</span><div class="combat-label">ROKET</div><div class="combat-name" id="combatRocketName">ROCKET STANDAR</div><div class="combat-count" id="combatRocketCount">12</div></div>
+  </div>
+
+
+
+
+  <div id="overlay">
+    <div id="dustLayer"></div>
+    <div id="menuPanel" class="astro-menu">
+      <div class="astro-scene">
+        <div class="astro-welcome">WELCOME, GUARDIAN!</div>
+        <div class="astro-notyou">IF THIS IS NOT YOU, CLICK HERE</div>
+        <div class="astro-planet"></div>
+        <div class="astro-ship"><span class="ship-wing ship-wing-l"></span><span class="ship-wing ship-wing-r"></span><span class="ship-engine ship-engine-l"></span><span class="ship-engine ship-engine-r"></span><span class="ship-cockpit"></span><span class="ship-core"></span></div>
+        <h1 class="astro-title"><span class="title-line1">GUARDIAN</span><br><span class="title-line2">OF THE NEBULA</span></h1>
+        
+<div class="astro-menu-nebula" aria-hidden="true"></div>
+<div class="astro-meteor-field" aria-hidden="true"><span class="menu-meteor mm1"></span><span class="menu-meteor mm2"></span><span class="menu-meteor mm3"></span><span class="menu-meteor mm4"></span><span class="menu-meteor mm5"></span><span class="menu-meteor mm6"></span><span class="menu-meteor mm7"></span><span class="menu-meteor mm8"></span></div><div class="astro-menu-overlay" aria-hidden="true"></div><div class="astro-rocks" aria-hidden="true">
+          <span class="rk r1"></span><span class="rk r2"></span><span class="rk r3"></span><span class="rk r4"></span>
+          <span class="rk r5"></span><span class="rk r6"></span><span class="rk r7"></span><span class="rk r8"></span>
+        </div>
+      </div>
+
+      <div id="statLine" class="stat" style="display:none;"></div>
+
+      <!-- Kompat lama: elemen ini disembunyikan dari tampilan menu utama, fungsinya kini ada di panel OPTIONS -->
+      <div id="soundRow" style="display:none;"><button class="sound-btn on" id="soundBtn">🔊 SUARA ON</button></div>
+
+      
+      <div class="astro-menu-bar">
+        <button class="astro-btn" id="missionBtn"><span class="astro-btn-ic">🏆</span>HIGH SCORES</button>
+        <button class="astro-btn" id="settingsBtn"><span class="astro-btn-ic">⚙</span>OPTIONS</button>
+        <button class="astro-btn astro-btn-play" id="startBtn">PLAY</button>
+        <button class="astro-btn" id="helpBtn"><span class="astro-btn-ic">?</span>HELP</button>
+        <button class="astro-btn" id="quitBtn"><span class="astro-btn-ic">◧</span>QUIT</button>
+      </div>
+
+      <!-- Kompat lama: TOKO & KUSTOMISASI tidak lagi tampil di menu utama.
+           TOKO kini muncul otomatis sebagai jeda upgrade setiap level selesai.
+           KUSTOMISASI bisa dibuka lewat menu PAUSE saat bermain. -->
+      <div style="display:none;">
+        <button class="big" id="shopBtn">TOKO</button>
+        <button class="big" id="customizeBtn">KUSTOMISASI</button>
+      </div>
+    </div>
+
+    <div id="mapPanel">
+      <div class="levelDecor" aria-hidden="true">
+        <span class="level-star s1"></span><span class="level-star s2"></span><span class="level-star s3"></span><span class="level-star s4"></span>
+        <span class="level-star s5"></span><span class="level-star s6"></span><span class="level-star s7"></span><span class="level-star s8"></span>
+        <span class="level-orb o1"></span><span class="level-orb o2"></span><span class="level-orb o3"></span><span class="level-orb o4"></span>
+        <span class="level-meteor m1"></span><span class="level-meteor m2"></span><span class="level-meteor m3"></span>
+        <span class="level-corner c1"></span><span class="level-corner c2"></span>
+      </div>
+      <h1 style="font-size:16px;">PILIH LEVEL</h1>
+      <div id="mapPlanetTabs"></div>
+      <div id="mapArea">
+        <div id="mapGlow"></div>
+        <svg id="mapSvg" viewBox="0 0 300 440" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="mapNodes"></div>
+      </div>
+      <div id="mapInfo">🌍 Pilih level</div>
+      <div class="btnrow">
+        <button class="big" id="mapPlayBtn">🚀 MULAI LEVEL</button>
+        <button class="big back-btn" id="mapBackBtn">KEMBALI</button>
+      </div>
+    </div>
+
+    <div id="shopPanel">
+      <div class="armory-shell">
+        <div class="armory-head"><div><h1 class="sci-title" style="font-size:16px;margin:0 0 4px;">SPACE ARMORY</h1><div class="armory-code">HOLOGRAM MARKET · SECTOR 01–06</div></div><div class="wallet">💰 <span id="shopCoins">0</span></div></div>
+        <div class="tab-row" id="shopTabs">
+          <button class="tab-btn active" data-tab="weapons">🔫 SENJATA</button>
+          <button class="tab-btn" data-tab="rockets">🚀 ROKET</button>
+          <button class="tab-btn" data-tab="ships">🛸 PESAWAT</button>
+          <button class="tab-btn" data-tab="modules">◈ MODUL</button>
+          <button class="tab-btn" data-tab="drones">◉ DRONE</button>
+        </div>
+        <div id="weaponTab" class="tab-content active"><div class="section-label">TYPE OF LASER</div><div class="desc" style="font-size:10.5px;margin-bottom:8px;">Beli dan upgrade senjata. Senjata aktif dipakai langsung saat bermain dengan KLIK KANAN.</div><div id="weaponList"></div></div>
+        <div id="rocketTab" class="tab-content"><div class="section-label">TYPE OF ROCKET</div><div class="desc" style="font-size:10.5px;margin-bottom:8px;">Beli roket dan ganti tipe roket dengan tombol Y saat bermain.</div><div id="rocketCapacityCard"></div><div id="rocketList"></div></div>
+        <div id="shipTab" class="tab-content"><div class="section-label">ARMADA PESAWAT</div><div id="shipList"></div></div>
+        <div id="moduleTab" class="tab-content"><div class="section-label">MODULE BAY</div><div id="moduleList" class="armory-grid"></div></div>
+        <div id="droneTab" class="tab-content"><div class="section-label">DRONE BAY</div><div id="droneList" class="armory-grid"></div></div>
+        <button class="big back-btn" id="backBtn">KEMBALI</button>
+      </div>
+    </div>
+
+        <div id="customizePanel">
+      <h1 style="font-size:16px;">KUSTOMISASI</h1>
+      <p class="desc" style="font-size:11.5px;">Pilih pesawat, lalu ketuk slot <b>KIRI</b>/<b>KANAN</b> di sampingnya untuk memasang senjata yang sudah dibeli.</p>
+
+      <div class="hangar">
+        <div class="hangar-stage">
+          <button class="weapon-slot-btn" id="slotLeftBtn" data-slot="left">
+            <span class="slot-icon" id="slotLeftIcon"></span>
+            <span class="slot-label">KIRI</span>
+          </button>
+          <div class="custom-ship-preview-box hangar-preview">
+            <canvas class="custom-ship-preview" id="hangarShipPreview"></canvas>
+          </div>
+          <button class="weapon-slot-btn" id="slotRightBtn" data-slot="right">
+            <span class="slot-icon" id="slotRightIcon"></span>
+            <span class="slot-label">KANAN</span>
+          </button>
+        </div>
+        <div class="hangar-arrows-row">
+          <button class="hangar-arrow" id="shipPrevBtn" aria-label="Pesawat sebelumnya">‹</button>
+          <button class="hangar-arrow" id="shipNextBtn" aria-label="Pesawat berikutnya">›</button>
+        </div>
+      </div>
+
+      <div class="hangar-shipinfo">
+        <h3 id="hangarShipName" style="margin:0;"></h3>
+        <div class="ship-dots" id="hangarShipDots"></div>
+        <p id="hangarShipDesc"></p>
+        <p id="hangarShipBasic"></p>
+        <p id="hangarShipTrait"></p>
+        <div class="stat-bars">
+          <div class="stat-row"><div class="stat-row-head"><span>⚔ ATTACK</span><span class="stat-val" id="statAtkVal">0</span></div><div class="stat-bar-bg"><div class="stat-bar-fill atk" id="statAtkFill" style="width:0%"></div></div></div>
+          <div class="stat-row"><div class="stat-row-head"><span>⚡ SPEED</span><span class="stat-val" id="statSpdVal">0</span></div><div class="stat-bar-bg"><div class="stat-bar-fill spd" id="statSpdFill" style="width:0%"></div></div></div>
+          <div class="stat-row"><div class="stat-row-head"><span>🛡 DEFENSE</span><span class="stat-val" id="statDefVal">0</span></div><div class="stat-bar-bg"><div class="stat-bar-fill def" id="statDefFill" style="width:0%"></div></div></div>
+        </div>
+      </div>
+
+      <div id="weaponPicker" class="weapon-picker">
+        <div class="wp-header"><span id="wpTitle">PILIH SENJATA</span><button id="wpCloseBtn" aria-label="Tutup">✕</button></div>
+        <div id="wpList"></div>
+      </div>
+      <div class="loadout-shell" id="loadoutShell"><div class="loadout-head"><b>LOADOUT</b><span>Perlengkapan aktif</span></div><div class="loadout-tabs" id="loadoutTabs"><button class="loadout-tab active" data-loadout="weapons">SENJATA</button><button class="loadout-tab" data-loadout="modules">MODUL</button><button class="loadout-tab" data-loadout="drone">DRONE</button></div><div class="loadout-panel active" id="loadoutWeapons"><div class="loadout-grid"><div class="loadout-slot" id="loadoutLeftSlot"></div><div class="loadout-slot" id="loadoutRightSlot"></div></div></div><div class="loadout-panel" id="loadoutModules"><div class="module-equip-grid"><div class="module-equip-slot" id="moduleEquip1"></div><div class="module-equip-slot" id="moduleEquip2"></div></div><div id="hangarModulePicker" class="weapon-picker show" style="margin-top:7px;"></div></div><div class="loadout-panel" id="loadoutDrone"><div id="hangarDronePicker"></div></div></div>
+      <button class="big back-btn" id="customizeBackBtn">KEMBALI</button>
+    </div>
+
+    <div id="missionPanel" class="high-scores-panel">
+      <h1 style="font-size:16px;">HIGH SCORES</h1>
+      <p class="desc" style="font-size:11.5px;">Skor terbaik yang tersimpan di perangkat ini.</p>
+      <div id="missionList" class="high-score-list"></div>
+      <button class="big back-btn" id="missionBackBtn">KEMBALI</button>
+    </div>
+
+    <div id="settingsPanel" style="display:none;width:min(380px,100%);">
+      <div class="glass-card" style="padding:18px;">
+        <h1 class="sci-title" style="font-size:16px;margin-bottom:6px;">PENGATURAN</h1>
+        <p class="desc" style="font-size:11px;margin-bottom:12px;">Audio tersimpan otomatis di perangkat ini. Kesulitan dipilih saat menekan PLAY.</p>
+        <div class="setting-row"><div class="setting-head"><span>MASTER VOLUME</span><span id="masterVolVal">80%</span></div><input id="masterVol" class="range" type="range" min="0" max="100" value="80"></div>
+        <div class="setting-row"><div class="setting-head"><span>SFX VOLUME</span><span id="sfxVolVal">80%</span></div><input id="sfxVol" class="range" type="range" min="0" max="100" value="80"></div>
+        <div class="setting-row"><div class="setting-head"><span>MUSIK VOLUME</span><span id="musicVolVal">55%</span></div><input id="musicVol" class="range" type="range" min="0" max="100" value="55"></div>
+        <div class="setting-row"><div class="setting-head"><span>SUARA</span></div><div class="setting-toggle"><button id="muteAllBtn">🔊 SUARA AKTIF</button></div></div>
+        <button class="big back-btn" id="settingsBackBtn">KEMBALI</button>
+      </div>
+    </div>
+
+    <div id="pausePanel">
+      <div class="pause-card">
+        <h2>GAME PAUSED</h2>
+        <p>Game sedang dijeda. LANJUT untuk meneruskan run ini, atau EXIT untuk membatalkan progres run.</p>
+        <div class="btnrow">
+          <button class="big" id="resumeBtn">▶ LANJUTKAN</button>
+          <button class="big" id="pauseCustomizeBtn">🛠 KUSTOMISASI</button>
+          <button class="big" id="pauseSettingsBtn">⚙ PENGATURAN</button>
+          <button class="big" id="exitGameBtn">✕ KELUAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameOverPanel">
+      <h2>GAME OVER</h2>
+      <div class="result-card"><div class="result-big" id="gameOverStats"></div><div class="result-small" id="gameOverMsg">Kapalmu hancur di tengah perjalanan.</div></div>
+      <div class="btnrow"><button class="big" id="retryBtn">COBA LAGI</button><button class="big back-btn" id="gameOverMenuBtn">MENU UTAMA</button></div>
+    </div>
+  <div id="difficultyModal" class="detail-modal">
+    <div class="detail-box glass-card diff-modal-box">
+      <button class="detail-close" id="diffModalClose">✕</button>
+      <h2 class="diff-modal-title">PILIH TINGKAT KESULITAN</h2>
+      <div class="diff-modal-row">
+        <button class="diff-choice" data-diff="santai"><span class="diff-choice-label" style="color:#7CFF9E">NORMAL</span><span class="diff-choice-check"></span></button>
+        <button class="diff-choice on" data-diff="normal"><span class="diff-choice-label" style="color:#FFD166">SULIT</span><span class="diff-choice-check"></span></button>
+        <button class="diff-choice" data-diff="sulit"><span class="diff-choice-label" style="color:#FF6B6B">EXTREME</span><span class="diff-choice-check"></span></button>
+      </div>
+      <div class="diff-modal-actions">
+        <button class="big diff-modal-cancel" id="diffCancelBtn">CANCEL</button>
+        <button class="big diff-modal-play" id="diffPlayBtn">PLAY</button>
+      </div>
+    </div>
+  </div>
+  <div id="helpModal" class="detail-modal">
+    <div class="detail-box glass-card" style="width:min(360px,calc(100vw - 36px));text-align:left;">
+      <button class="detail-close" id="helpClose">✕</button>
+      <h2 style="font:14px 'Press Start 2P';color:var(--cyan2);margin:0 0 12px;">CARA BERMAIN</h2>
+      <p style="font-size:12px;color:var(--dim);line-height:1.7;margin:0;">Gerakkan mouse untuk mengendalikan kapal (atau geser di HP / pakai WASD & panah). Setiap pesawat punya serangan dasar unik yang selalu aktif — kustomisasi senjata KIRI/KANAN untuk menambah gaya tembakanmu. Selesaikan misi dan gaya-gayakan kapalmu!<br><br>Setiap level selesai, kamu akan berhenti sejenak di SPACE ARMORY untuk belanja & upgrade sebelum lanjut ke level berikutnya.</p>
+    </div>
+  </div>
+  <div id="itemDetailModal" class="detail-modal">
+    <div class="detail-box glass-card">
+      <button class="detail-close" id="detailClose">✕</button>
+      <div id="detailPreview" class="detail-preview">◈</div>
+      <div id="detailContent"></div>
+      <div id="detailActions" class="detail-actions"></div>
+    </div>
+  </div>
+  <div id="miniNotify" class="mini-notify"></div>
+  </div>
+</div>
+
+<script src="inti.js"></script>
+<script src="audio.js"></script>
+<script src="dunia.js"></script>
+<script src="senjata.js"></script>
+<script src="pesawat.js"></script>
+<script src="armori.js"></script>
+<script src="musuh.js"></script>
+<script src="progres.js"></script>
+<script src="ikon.js"></script>
+<script src="render.js"></script>
+<script src="spawner.js"></script>
+<script src="loop.js"></script>
+<script src="menu-toko.js"></script>
+<script src="kontrol.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

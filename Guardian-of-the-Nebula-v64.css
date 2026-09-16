@@ -1,0 +1,870 @@
+  :root {
+    color-scheme: dark;
+    --bg-deep: #12102A; --bg-mid: #1E1B3F;
+    --coral: #FF6B6B; --cyan: #4ECDC4; --amber: #FFD166; --purple: #B98CE0; --magenta: #FF4D8D;
+    --white: #F4F2FF; --dim: #8B87B8; --panel: #201C44;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg-deep); overflow: hidden; font-family: 'Nunito', sans-serif; color: var(--white); touch-action: none; }
+  #wrap { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+  canvas { background: var(--bg-deep); display:block; touch-action:none; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:100vw; height:100vh; }
+  #overlay { z-index:20; }
+  #shopPanel, #customizePanel, #missionPanel, #pausePanel, #gameOverPanel {
+    width:min(420px, calc(100vw - 40px)); margin-left:auto; margin-right:auto; align-self:center; padding-bottom:12px;
+    animation: panelFade 0.25s ease;
+  }
+  #menuPanel {
+    width:min(900px, calc(100vw - 40px)); margin-left:auto; margin-right:auto; align-self:center; padding-bottom:12px;
+    animation: panelFade 0.25s ease;
+  }
+  @keyframes panelFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  #menuPanel { display:flex; flex-direction:column; align-items:center; padding-top:6px; padding-bottom:10px; }
+  #levelSelect.planet-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; width:100%; margin-bottom:10px; }
+  .planet-card { background:linear-gradient(160deg,#241F4E,#1B1840); border:1px solid rgba(255,255,255,0.06); border-radius:14px; padding:13px; cursor:pointer; text-align:left; transition:.18s; box-shadow:0 3px 0 rgba(0,0,0,.3); }
+  .planet-card:hover { transform:translateY(-2px); }
+  .planet-card.selected { border-color:var(--amber); box-shadow:0 3px 0 rgba(0,0,0,.3), 0 0 0 1px rgba(255,209,102,0.3), 0 0 16px rgba(255,209,102,0.15); transform:translateY(-2px); }
+  .planet-card.locked { opacity:.42; cursor:not-allowed; }
+  .planet-title { font-family:'Press Start 2P'; font-size:10px; color:var(--white); display:flex; align-items:center; gap:5px; }
+  .planet-desc { font-size:10px; color:var(--dim); margin-top:5px; line-height:1.4; }
+  .planet-levels { display:flex; gap:5px; margin-top:9px; }
+  .planet-levels button { flex:1; font-family:'Press Start 2P'; font-size:8px; padding:8px 2px; border:1px solid rgba(255,255,255,0.08); border-radius:7px; background:rgba(0,0,0,0.25); color:var(--dim); cursor:pointer; transition: all 0.15s ease; }
+  .planet-levels button.unlocked { color:var(--cyan); }
+  .planet-levels button.unlocked:hover { background: rgba(78,205,196,0.12); }
+  .planet-levels button.selected { color:var(--amber); border-color:var(--amber); background: rgba(255,209,102,0.12); box-shadow: 0 0 8px rgba(255,209,102,0.25); }
+  #hpWrap { display:none !important; }
+  #hpLabel { font:9px 'Press Start 2P'; text-align:center; color:var(--white); margin-bottom:4px; text-shadow: 0 2px 0 rgba(0,0,0,0.4); }
+  #hpBg { height:12px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:8px; overflow:hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); }
+  #hpFill { height:100%; width:100%; background:linear-gradient(90deg,#4ECDC4,#7AE5DC); transition:width .15s; }
+  #waveEnemyCount{display:block;margin-top:3px;font:6px 'Press Start 2P';color:var(--dim);letter-spacing:.2px}#killChip{line-height:1.35} #waveTag { position:absolute; top:118px; left:50%; transform:translateX(-50%); font:8px 'Press Start 2P'; color:var(--amber); z-index:5; display:none; white-space:nowrap; background: rgba(18,16,42,0.55); backdrop-filter: blur(4px); padding: 6px 12px 9px; border-radius: 999px; border: 1px solid rgba(255,209,102,0.25); }
+  #waveBarBg { position:absolute; left:14px; right:14px; bottom:3px; height:3px; background:rgba(255,255,255,0.15); border-radius:3px; overflow:hidden; }
+  #waveBarFill { height:100%; width:0%; background:linear-gradient(90deg,var(--amber),#FFF3C4); transition:width 0.2s ease; }
+  #gameOverPanel { display:none; width:min(420px, calc(100vw - 40px)); }
+  #gameOverPanel h2 { font:22px 'Press Start 2P'; background: linear-gradient(180deg, #FF9A9A, var(--coral)); -webkit-background-clip: text; background-clip: text; color: transparent; margin:0 0 14px; filter: drop-shadow(0 3px 0 rgba(0,0,0,0.3)); }
+  .result-card { background:linear-gradient(160deg,#241F4E,#171532); border:1px solid rgba(255,255,255,0.08); border-radius:15px; padding:18px; margin:8px 0 16px; box-shadow: 0 4px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05); }
+  .result-big { font:13px 'Press Start 2P'; color:var(--amber); line-height:1.8; }
+  .result-small { color:var(--dim); font-size:11px; line-height:1.6; }
+  #moveHint { position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--dim); z-index:5; display:none; }
+  .game-controls { display:flex; gap:8px; justify-content:center; margin-top:8px; }
+  .move-btn { width:54px; height:40px; border:2px solid #3A3570; border-radius:9px; background:#201C44; color:var(--white); font:bold 16px Nunito; }
+  #hud { position: absolute; top: 12px; left: 12px; right: 12px; display: none; justify-content: space-between; align-items: flex-start; font-family: 'Press Start 2P', monospace; font-size: 10px; pointer-events: none; gap: 8px; }
+  #hud .col { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  #hud .col:last-child { align-items: flex-end; }
+  #hud .chip { padding: 5px 10px; border-radius: 8px; background: rgba(18,16,42,0.55); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.08); text-shadow: 0 2px 0 rgba(0,0,0,0.4); }
+  #hud .score { color: var(--amber); } #hud .lives { color: var(--coral); } #hud .coins { color: var(--amber); } #hud .level { color: var(--cyan); }
+  #hud .score{ border-radius:999px; border-color:rgba(255,209,102,.4); box-shadow:0 0 10px rgba(255,209,102,.18),inset 0 1px 0 rgba(255,255,255,.06); display:flex; align-items:center; gap:6px; }
+  #hud .score::before{ content:'🏅'; font-size:11px; filter:drop-shadow(0 0 4px rgba(255,209,102,.85)); }
+  #hud .level{ border-radius:999px; border-color:rgba(157,231,255,.4); box-shadow:0 0 10px rgba(157,231,255,.16),inset 0 1px 0 rgba(255,255,255,.06); display:flex; align-items:center; gap:6px; }
+  #hud .level::before{ content:'🛰'; font-size:10px; filter:drop-shadow(0 0 4px rgba(157,231,255,.85)); }
+  #comboTag { color: var(--purple); font-size: 10px; text-align: right; min-height: 12px; opacity: 0; transition: opacity 0.2s ease; text-shadow: 0 0 8px rgba(185,140,224,0.8); }
+  #bossBarWrap { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); width: min(85%, 380px); display: none; }
+  #bossLabel { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--magenta); text-align: center; margin-bottom: 4px; text-shadow: 0 2px 0 rgba(0,0,0,0.5); }
+  #bossBarBg { background: rgba(255,255,255,0.12); border-radius: 6px; height: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+  #bossBarFill { height: 100%; background: linear-gradient(90deg, var(--magenta), #FF8FB4); width: 100%; transition: width 0.15s ease; }
+  #levelBanner { position: absolute; top: 38%; left: 0; right: 0; text-align: center; font-family: 'Press Start 2P', monospace; font-size: clamp(13px, 4vw, 19px); color: var(--cyan); text-shadow: 0 0 14px rgba(78,205,196,0.7); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; line-height: 1.6; }
+  #achieveToast { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); background: var(--panel); border: 2px solid var(--amber); border-radius: 999px; padding: 8px 16px; font-size: 11px; color: var(--amber); font-family: 'Press Start 2P', monospace; opacity: 0; transition: opacity 0.3s ease; white-space: nowrap; pointer-events: none; max-width: 88%; text-overflow: ellipsis; overflow: hidden; }
+  #planetTag { position: absolute; top: 94px; left: 50%; transform: translateX(-50%); font: 8px 'Press Start 2P'; color: var(--white); z-index: 5; display: none; white-space: nowrap; background: rgba(18,16,42,0.5); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); letter-spacing: 0.5px; }
+  #killChip { color: var(--cyan) !important; }
+  /* ---- Big sci-fi banner: dipakai untuk boss warning, phase 2, boss defeated, planet intro/clear/unlock/discovery ---- */
+  #bigBanner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 30; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+  #bigBanner .bb-inner { position: relative; text-align: center; padding: 20px 26px; border-radius: 14px; background: rgba(8,7,18,0.55); backdrop-filter: blur(3px); overflow: hidden; max-width: 86vw; }
+  #bigBanner .bb-scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 3px); pointer-events: none; mix-blend-mode: overlay; }
+  #bigBanner .bb-tag { font-family: 'Press Start 2P', monospace; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px; opacity: 0.9; }
+  #bigBanner .bb-title { font-family: 'Press Start 2P', monospace; font-size: clamp(15px, 5.2vw, 22px); line-height: 1.6; text-shadow: 0 0 16px currentColor; }
+  #bigBanner .bb-sub { font-family: 'Nunito', sans-serif; font-size: 12.5px; color: #C9C6E8; margin-top: 8px; line-height: 1.5; max-width: 280px; }
+  #bigBanner.warn .bb-inner { border: 1px solid rgba(255,77,141,0.55); box-shadow: 0 0 30px rgba(255,77,141,0.25); }
+  #bigBanner.warn .bb-tag, #bigBanner.warn .bb-title { color: var(--magenta); }
+  #bigBanner.warn { animation: bbFlash 0.35s ease 2; }
+  @keyframes bbFlash { 0%,100% { background: rgba(0,0,0,0); } 50% { background: rgba(255,77,141,0.10); } }
+  #bigBanner.info .bb-inner { border: 1px solid rgba(78,205,196,0.5); box-shadow: 0 0 26px rgba(78,205,196,0.2); }
+  #bigBanner.info .bb-tag, #bigBanner.info .bb-title { color: var(--cyan); }
+  #bigBanner.success .bb-inner { border: 1px solid rgba(255,209,102,0.55); box-shadow: 0 0 26px rgba(255,209,102,0.22); }
+  #bigBanner.success .bb-tag, #bigBanner.success .bb-title { color: var(--amber); }
+  #bigBanner.crystara .bb-inner { border: 1px solid rgba(157,231,255,0.6); box-shadow: 0 0 30px rgba(185,140,224,0.3); }
+  #bigBanner.crystara .bb-tag, #bigBanner.crystara .bb-title { color: #9DE7FF; }
+  #bigBanner.show { opacity: 1; }
+  #bigBanner.shake { animation: bbShake 0.4s ease; }
+  @keyframes bbShake { 0%,100%{transform:translate(0,0);} 20%{transform:translate(-4px,2px);} 40%{transform:translate(4px,-2px);} 60%{transform:translate(-3px,-2px);} 80%{transform:translate(3px,2px);} }
+  #enemyIntroToast { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); background: linear-gradient(160deg,#241F4E,#171532); border: 2px solid var(--cyan); border-radius: 12px; padding: 8px 16px; font-family: 'Press Start 2P', monospace; font-size: 9.5px; color: var(--cyan); opacity: 0; transition: opacity 0.3s ease; text-align: center; pointer-events: none; z-index: 25; max-width: 82%; }
+  #enemyIntroToast .ei-name { display: block; margin-top: 4px; font-size: 11px; color: var(--white); }
+  #enemyIntroToast .ei-desc { display: block; margin-top: 4px; font-family: 'Nunito', sans-serif; font-size: 10.5px; color: var(--dim); letter-spacing: 0; }
+  .diff-stars { color: var(--amber); letter-spacing: 1px; }
+  #hpWrap.low-hp #hpLabel { animation: lowHpBlink 0.9s ease-in-out infinite; }
+  @keyframes lowHpBlink { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+  #screenFlash { position: absolute; inset: 0; background: rgba(255,60,60,0.0); pointer-events: none; z-index: 15; }
+  #pauseBtn { position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:12; display:none; width:42px; height:34px; border:2px solid rgba(255,255,255,.18); border-radius:9px; background:rgba(32,28,68,.78); color:var(--white); font:bold 16px Nunito; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.35); backdrop-filter:blur(5px); }
+  #pauseBtn:hover { filter:brightness(1.12); }
+  #pausePanel { display:none; width:min(100%,330px); }
+  #pausePanel .pause-card { background:linear-gradient(160deg,#241F4E,#171532); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:22px 20px; box-shadow:0 8px 25px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,0.05); }
+  #pausePanel h2 { font:18px 'Press Start 2P'; color:var(--amber); margin:0 0 14px; text-shadow: 0 0 14px rgba(255,209,102,0.4); }
+  #pausePanel p { color:var(--dim); font-size:12px; margin:0 0 16px; }
+  #pausePanel .btnrow { flex-direction:column; align-items:stretch; }
+  #resumeBtn { background:linear-gradient(180deg,#7AE5DC,var(--cyan)); box-shadow:0 4px 0 #38A199; }
+  #exitGameBtn { background:linear-gradient(180deg,#FF8A8A,var(--coral)); box-shadow:0 4px 0 #C24C4C; }
+  #overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; background: linear-gradient(180deg, rgba(10,9,22,0.35) 0%, rgba(10,9,22,0.75) 40%, rgba(8,7,18,0.92) 100%); padding: max(54px, env(safe-area-inset-top)) 20px 32px; overflow-y: scroll; scrollbar-gutter: stable both-edges; box-sizing: border-box; transition: background 0.4s ease; }
+  #dustLayer { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:-1; }
+  #dustLayer span { position:absolute; bottom:-10px; width:3px; height:3px; border-radius:50%; background:rgba(200,220,255,0.55); box-shadow:0 0 5px rgba(200,220,255,0.6); animation: dustFloat linear infinite; }
+  @keyframes dustFloat { 0% { transform: translateY(0) translateX(0); opacity:0; } 10% { opacity:.8; } 90% { opacity:.5; } 100% { transform: translateY(-110vh) translateX(var(--dx,20px)); opacity:0; } }
+  #overlay.ov-map { background: linear-gradient(180deg, rgba(6,14,26,0.32) 0%, rgba(6,16,30,0.78) 42%, rgba(4,10,20,0.94) 100%); }
+  #overlay.ov-sub { background: linear-gradient(180deg, rgba(16,12,28,0.55) 0%, rgba(12,10,26,0.86) 45%, rgba(8,7,18,0.96) 100%); }
+  #mapGlow { position: fixed; inset: 0; width: 100vw; height: 100vh; border-radius: 0; pointer-events: none; filter: blur(2px); transition: background 0.5s ease; z-index: 0; }
+  #overlay::-webkit-scrollbar { width: 8px; }
+  #overlay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 8px; }
+  #overlay::-webkit-scrollbar-track { background: transparent; }
+  #overlay h1 { font-family: 'Press Start 2P', monospace; font-size: clamp(16px, 5vw, 24px); background: linear-gradient(180deg, #FFE39A, var(--coral)); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 0 0 12px; line-height: 1.5; filter: drop-shadow(0 3px 0 rgba(0,0,0,0.35)); }
+  #overlay p.desc { max-width: 320px; color: #C9C6E8; font-size: 13px; margin: 0 0 14px; line-height: 1.6; }
+  .stat { font-family: 'Press Start 2P', monospace; color: var(--amber); font-size: 12px; margin-bottom: 14px; line-height: 1.8; }
+  .wallet { font-family: 'Press Start 2P', monospace; color: var(--amber); font-size: 12px; margin-bottom: 12px; background: linear-gradient(180deg, #241F4E, #1A1738); padding: 9px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 3px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06); display: inline-flex; gap: 14px; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button.big { font-family: 'Press Start 2P', monospace; color: var(--bg-deep); border: none; padding: 13px 20px; font-size: 11px; border-radius: 8px; cursor: pointer; transition: transform 0.12s ease, filter 0.12s ease; }
+  button.big:hover { filter: brightness(1.08); }
+  button.big:active { transform: translateY(2px) scale(0.98); }
+  #startBtn { background: linear-gradient(180deg, #FF8A8A, var(--coral)); box-shadow: 0 4px 0 #C24C4C, 0 0 0 rgba(255,138,138,0); animation: startPulse 2.6s ease-in-out infinite; }
+  @keyframes startPulse { 0%,100% { box-shadow: 0 4px 0 #C24C4C, 0 0 0 rgba(255,138,138,0); } 50% { box-shadow: 0 4px 0 #C24C4C, 0 0 16px rgba(255,138,138,0.55); } }
+  #shopBtn { background: linear-gradient(180deg, #7AE5DC, var(--cyan)); box-shadow: 0 4px 0 #38A199; }
+  #missionBtn { background: linear-gradient(180deg, #D2B3F0, var(--purple)); box-shadow: 0 4px 0 #8B63B8; }
+  #settingsBtn { background: linear-gradient(180deg,#A8B4FF,#6876D8); box-shadow: 0 4px 0 #4854A5; }
+  #customizeBtn { background: linear-gradient(180deg, #FF9AC1, var(--magenta)); box-shadow: 0 4px 0 #C13566; }
+  #customizePanel { display: none; width: 100%; max-width: 380px; }
+  .custom-ship-card { background: linear-gradient(160deg, #241F4E, #1B1840); border: 2px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; text-align: left; box-shadow: 0 3px 0 rgba(0,0,0,0.3); cursor: pointer; transition: border-color 0.15s ease; }
+  .custom-ship-card.selected { border-color: var(--amber); box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(255,209,102,0.25); }
+  .custom-ship-card h3 { margin: 0 0 5px; font-size: 14px; color: var(--white); }
+  .custom-ship-card p { margin: 0 0 3px; font-size: 11.5px; color: var(--dim); line-height: 1.4; }
+  .custom-ship-card .pick-tag { display: inline-block; margin-top: 6px; font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--amber); }
+  .custom-weapon-row { background: var(--panel); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .custom-weapon-row .cw-name { font-size: 12.5px; color: var(--white); font-weight: 800; }
+  .custom-weapon-row .cw-lv { font-size: 10px; color: var(--dim); }
+  .back-btn { background: linear-gradient(180deg, #3A3570, #201C44); color: var(--dim); box-shadow: 0 4px 0 #100E24, inset 0 1px 0 rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); margin-top: 16px; }
+  .back-btn:hover { color: var(--white); }
+  .back-btn:active { transform: translateY(2px) scale(0.98); }
+  /* Samakan lebar tombol berpasangan (Mulai/Kembali, Lanjut/Exit, Coba Lagi/Pilih Level) agar konsisten */
+  #mapPanel .btnrow button.big, #pausePanel .btnrow button.big, #gameOverPanel .btnrow button.big { flex: 1 1 0; min-width: 0; margin-top: 0; }
+  .section-label { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--dim); margin: 14px 0 8px; }
+  #diffRow, #soundRow { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .diff-btn, .sound-btn { font-family: 'Press Start 2P', monospace; font-size: 10px; padding: 9px 12px; border-radius: 6px; border: 2px solid #3A3570; background: var(--panel); color: var(--dim); cursor: pointer; }
+  .diff-btn.on { border-color: var(--amber); color: var(--amber); }
+  .sound-btn.on { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ==== MENU UTAMA — layout sci-fi seperti game shooter PC klasik ==== */
+  #menuPanel.astro-menu{ position:absolute; inset:0; width:100%; height:100%; max-width:none; margin:0; padding:0; display:block; overflow:hidden; animation:none; }
+  .astro-scene{ position:absolute; inset:0; width:100%; height:100%; margin:0; overflow:hidden; border:0; border-radius:0;
+    background:radial-gradient(ellipse at 50% 36%,#0e2244 0%,#081733 32%,#030a1c 62%,#00030a 100%); box-shadow:none; }
+  .astro-scene::before{ content:''; position:absolute; inset:0; background:
+    radial-gradient(circle at 12% 28%,rgba(255,255,255,.9) 0 1px,transparent 2px),
+    radial-gradient(circle at 22% 14%,rgba(255,255,255,.7) 0 1px,transparent 2px),
+    radial-gradient(circle at 76% 20%,rgba(255,255,255,.8) 0 1px,transparent 2px),
+    radial-gradient(circle at 91% 36%,rgba(255,255,255,.7) 0 1px,transparent 2px),
+    radial-gradient(circle at 57% 24%,rgba(255,255,255,.65) 0 1px,transparent 2px); opacity:.8; }
+  .astro-scene::after{ content:''; position:absolute; left:-10%; right:-10%; top:38%; height:42%; background:radial-gradient(ellipse at 50% 50%,rgba(53,132,255,.42),rgba(34,71,145,.16) 38%,transparent 70%); transform:rotate(-8deg); }
+  .astro-planet{ position:absolute; left:50%; top:8%; width:min(56vw,540px); aspect-ratio:1/1; transform:translateX(-50%); border-radius:50%;
+    background:
+      radial-gradient(circle at 33% 28%,rgba(180,215,255,.20) 0 3%,transparent 4%),
+      radial-gradient(circle at 66% 60%,rgba(20,40,75,.55) 0 8%,transparent 9%),
+      radial-gradient(circle at 26% 66%,rgba(30,55,95,.45) 0 10%,transparent 11%),
+      radial-gradient(circle at 52% 46%,rgba(60,95,145,.35) 0 14%,transparent 15%),
+      radial-gradient(circle at 42% 38%,#4d76ab 0%,#28466f 34%,#122242 60%,#050d1f 82%,#010509 100%);
+    box-shadow:
+      inset -46px -34px 80px rgba(0,0,0,.78),
+      inset 16px 10px 36px rgba(150,200,255,.14),
+      0 0 42px rgba(60,140,255,.32),
+      0 0 100px rgba(50,110,255,.16);
+    opacity:.96; }
+  .astro-planet::before{
+    content:''; position:absolute; inset:-11%;
+    border-radius:50%;
+    background:radial-gradient(circle at 50% 48%,rgba(120,190,255,.10),rgba(55,130,255,.16) 48%,transparent 72%);
+    filter:blur(13px);
+    animation:moonAura 5s ease-in-out infinite alternate;
+  }
+  .astro-planet::after{
+    content:''; position:absolute; inset:0;
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 24% 30%,rgba(255,255,255,.07),transparent 11%),
+      radial-gradient(circle at 70% 22%,rgba(255,255,255,.05),transparent 13%),
+      radial-gradient(ellipse at 62% 58%,transparent 55%,rgba(0,0,0,.55) 100%);
+  }
+  @keyframes moonAura{
+    from{opacity:.55;transform:scale(.97)}
+    to{opacity:1;transform:scale(1.04)}
+  }
+  .astro-ship{ position:absolute; z-index:4; left:50%; top:9%; width:min(30vw,430px); height:min(19vw,270px); transform:translateX(-50%);
+    overflow:visible; isolation:isolate;
+    background:linear-gradient(160deg,#9fb9d6 0%,#4c6484 30%,#20304a 60%,#080e18 100%);
+    clip-path:polygon(50% 0%,62% 17%,68% 31%,88% 40%,100% 72%,82% 67%,72% 82%,61% 73%,50% 100%,39% 73%,28% 82%,18% 67%,0 72%,12% 40%,32% 31%,38% 17%);
+    box-shadow:inset 0 0 18px rgba(0,0,0,.45);
+    animation:shipHover 4.5s ease-in-out infinite;
+    filter:drop-shadow(0 12px 18px rgba(0,0,0,.75))
+           drop-shadow(0 0 6px rgba(150,220,255,.42))
+           drop-shadow(0 0 20px rgba(60,140,255,.22));
+  }
+  .astro-ship .ship-highlight{
+    position:absolute; inset:-16%; z-index:0;
+    border-radius:50%;
+    background:radial-gradient(ellipse at center,rgba(140,205,255,.14),transparent 58%);
+    filter:blur(9px);
+    animation:shipAura 3.6s ease-in-out infinite alternate;
+  }
+  @keyframes shipAura{
+    from{opacity:.32;transform:scale(.92)}
+    to{opacity:.8;transform:scale(1.08)}
+  }
+  .ship-wing{ position:absolute; top:36%; width:44%; height:30%; z-index:2;
+    background:linear-gradient(150deg,#8faecf 0%,#4c6484 30%,#33455f 50%,#0d1522 100%);
+    border:1px solid rgba(160,210,255,.22);
+    box-shadow:inset 0 0 10px rgba(150,205,255,.08), 0 4px 10px rgba(0,0,0,.5), 0 0 8px rgba(60,140,255,.14);
+  }
+  .ship-wing-l{ left:-20%; clip-path:polygon(100% 0,45% 15%,0 65%,52% 75%,100% 100%); transform:rotate(-6deg); }
+  .ship-wing-r{ right:-20%; clip-path:polygon(0 0,55% 15%,100% 65%,48% 75%,0 100%); transform:rotate(6deg); }
+  .ship-cockpit{ position:absolute; left:39%; top:7%; width:22%; height:46%; z-index:6;
+    border-radius:46% 46% 36% 36%;
+    background:linear-gradient(180deg,#eaf6ff 0%,#7fb2dd 32%,#233a58 74%,#0a1522 100%);
+    border:1px solid rgba(210,240,255,.5);
+    box-shadow:0 0 12px rgba(100,195,255,.34), inset 0 0 10px rgba(255,255,255,.16);
+    animation:shipGlassPulse 3.2s ease-in-out infinite alternate;
+  }
+  .ship-core{ position:absolute; left:44%; top:47%; width:12%; height:19%; z-index:7;
+    border-radius:50%;
+    background:radial-gradient(circle,#fff 0 8%,#78e8ff 26%,#1f7fe8 58%,transparent 76%);
+    filter:drop-shadow(0 0 8px rgba(80,210,255,.85));
+    animation:corePulse 1.4s ease-in-out infinite alternate;
+  }
+  .ship-engine{ position:absolute; top:62%; width:12%; height:22%; z-index:5;
+    border-radius:50%;
+    background:radial-gradient(circle at 50% 15%,#fff,#69e0ff 22%,#1f74e8 55%,transparent 74%);
+    filter:blur(1px);
+    box-shadow:0 0 14px rgba(80,200,255,.6);
+    animation:enginePulse 1s ease-in-out infinite alternate;
+  }
+  .ship-engine-l{ left:22%; } .ship-engine-r{ right:22%; }
+  @keyframes corePulse{ from{opacity:.55;transform:scale(.86)} to{opacity:1;transform:scale(1.16)} }
+  @keyframes enginePulse{
+    from{opacity:.62;transform:scale(.86)}
+    to{opacity:1;transform:scale(1.18)}
+  }
+  @keyframes shipHover{
+    0%,100%{transform:translateX(-50%) translateY(0)}
+    50%{transform:translateX(-50%) translateY(-5px)}
+  }
+  @keyframes shipGlassPulse{
+    from{filter:brightness(.9);opacity:.9}
+    to{filter:brightness(1.2);opacity:1}
+  }
+  .astro-ship-left,.astro-ship-right{ display:none; }
+  .astro-title{ position:absolute; z-index:6; top:7%; left:0; right:0; margin:0; padding:0; text-align:center; font-family:'Press Start 2P',monospace;
+    font-size:clamp(18px,3.4vw,48px); line-height:1.35; letter-spacing:1px; }
+  .astro-title .title-line1{
+    color:#eafcff;
+    text-shadow:0 0 4px #fff,0 0 12px #7ff0ff,0 0 24px #1fc4ff,0 0 48px #0a6fdc,0 3px 0 rgba(0,0,0,.75);
+    animation:neonPulse 2.6s ease-in-out infinite alternate;
+  }
+  .astro-title .title-line2{
+    color:#fff3fa;
+    text-shadow:0 0 4px #fff,0 0 12px #ff7fdb,0 0 24px #ff2e9a,0 0 48px #b3007a,0 3px 0 rgba(0,0,0,.75);
+    animation:neonPulse 2.6s ease-in-out infinite alternate;
+    animation-delay:-1.3s;
+  }
+  @keyframes neonPulse{
+    from{ filter:brightness(.88); }
+    to{ filter:brightness(1.18); }
+  }
+  /* ==== MENU METEOR + OVERLAY ==== */
+  .astro-meteor-field{
+    position:absolute; inset:0; z-index:7; pointer-events:none; overflow:hidden;
+  }
+  .astro-meteor-field::before{
+    content:''; position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 18% 32%,rgba(112,206,255,.16),transparent 18%),
+      radial-gradient(circle at 82% 52%,rgba(255,105,150,.13),transparent 22%),
+      radial-gradient(circle at 50% 78%,rgba(80,140,255,.12),transparent 25%);
+    animation: menuNebulaPulse 7s ease-in-out infinite alternate;
+  }
+  .menu-meteor{
+    position:absolute; width:clamp(38px,4.2vw,82px); height:clamp(7px,.9vw,14px);
+    border-radius:100%; transform:rotate(42deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.28) 16%,#bfe6ff 55%,#fff 100%);
+    filter:drop-shadow(0 0 6px rgba(150,210,255,.8));
+    opacity:.85;
+    animation: meteorFly linear infinite;
+  }
+  @keyframes meteorFly{
+    0%{transform:translate3d(-24vw,-22vh,0) rotate(42deg);opacity:0}
+    8%{opacity:1}
+    85%{opacity:.9}
+    100%{transform:translate3d(122vw,122vh,0) rotate(42deg);opacity:0}
+  }
+  .menu-meteor::after{
+    content:''; position:absolute; right:-4px; top:50%;
+    width:8px; height:8px; transform:translateY(-50%);
+    border-radius:50%; background:#fff;
+    box-shadow:0 0 8px #fff,0 0 20px rgba(150,210,255,.95);
+  }
+  .mm1{left:-14%;top:-14%;animation-duration:1.6s;animation-delay:-.2s}
+  .mm2{left:6%;top:-20%;animation-duration:2.1s;animation-delay:-1.1s;transform:rotate(42deg) scale(.74)}
+  .mm3{left:26%;top:-16%;animation-duration:1.8s;animation-delay:-.7s;transform:rotate(42deg) scale(.92)}
+  .mm4{left:48%;top:-22%;animation-duration:2.4s;animation-delay:-1.6s;transform:rotate(42deg) scale(.6)}
+  .mm5{left:-18%;top:8%;animation-duration:1.9s;animation-delay:-.9s;transform:rotate(42deg) scale(.8)}
+  .mm6{left:66%;top:-18%;animation-duration:2.2s;animation-delay:-.3s;transform:rotate(42deg) scale(.7)}
+  .mm7{left:-10%;top:32%;animation-duration:2.6s;animation-delay:-1.3s;transform:rotate(42deg) scale(.55)}
+  .mm8{left:14%;top:-10%;animation-duration:1.7s;animation-delay:-2s;transform:rotate(42deg) scale(.86)}
+  /* ==== STAR OVERLAY: tidak ada garis scan diagonal ==== */
+  .astro-menu-overlay{
+    position:absolute; inset:0; z-index:8; pointer-events:none;
+    overflow:hidden; opacity:.88;
+    background:
+      radial-gradient(circle at 7% 16%,rgba(255,255,255,.9) 0 1px,transparent 2px),
+      radial-gradient(circle at 16% 72%,rgba(170,220,255,.8) 0 1px,transparent 2px),
+      radial-gradient(circle at 27% 23%,rgba(255,255,255,.75) 0 1.2px,transparent 2px),
+      radial-gradient(circle at 39% 64%,rgba(125,205,255,.8) 0 1px,transparent 2px),
+      radial-gradient(circle at 51% 15%,rgba(255,255,255,.8) 0 1.2px,transparent 2px),
+      radial-gradient(circle at 63% 76%,rgba(190,225,255,.8) 0 1px,transparent 2px),
+      radial-gradient(circle at 74% 29%,rgba(255,255,255,.9) 0 1px,transparent 2px),
+      radial-gradient(circle at 87% 61%,rgba(135,210,255,.8) 0 1px,transparent 2px),
+      radial-gradient(circle at 94% 13%,rgba(255,255,255,.85) 0 1px,transparent 2px);
+  }
+  .astro-menu-overlay::before{
+    content:'✦  ·    ·   ✧      ·     ✦    ·  ·       ✧      ·   ✦   ·      ·';
+    position:absolute; inset:0;
+    color:rgba(180,225,255,.62);
+    font:18px/4.6rem Georgia,serif;
+    letter-spacing:1.8rem;
+    text-shadow:0 0 7px rgba(90,190,255,.65);
+    opacity:.52;
+    animation:starTwinkle 4.8s ease-in-out infinite alternate;
+  }
+  .astro-menu-overlay::after{
+    content:'';
+    position:absolute; inset:-8%;
+    background:
+      radial-gradient(ellipse at 24% 42%,rgba(110,40,180,.18),transparent 28%),
+      radial-gradient(ellipse at 72% 57%,rgba(35,100,190,.17),transparent 32%),
+      radial-gradient(ellipse at 50% 20%,rgba(190,55,125,.10),transparent 30%),
+      radial-gradient(ellipse at center,transparent 34%,rgba(1,3,12,.55) 100%);
+    filter:blur(4px);
+    animation:nebulaBreath 8s ease-in-out infinite alternate;
+  }
+  @keyframes starTwinkle{
+    from{opacity:.28;filter:brightness(.75)}
+    to{opacity:.72;filter:brightness(1.25)}
+  }
+  @keyframes nebulaBreath{
+    from{opacity:.55;transform:scale(1)}
+    to{opacity:.92;transform:scale(1.04)}
+  }
+  @keyframes menuNebulaPulse{
+    from{opacity:.55;transform:scale(1)}
+    to{opacity:.9;transform:scale(1.035)}
+  }
+  /* ==== METEOR BELT DI BELAKANG MENU PILIHAN ==== */
+  .astro-rocks{
+    position:absolute; left:0; right:0; bottom:0; height:34%; z-index:7;
+    pointer-events:none; display:block; overflow:hidden;
+    filter:drop-shadow(0 -8px 18px rgba(78,150,255,.14));
+  }
+  .astro-rocks::before{
+    content:''; position:absolute; left:-8%; right:-8%; bottom:-22%; height:92%;
+    border-radius:50% 50% 0 0;
+    background:
+      radial-gradient(circle at 18% 42%,rgba(155,180,220,.20) 0 2%,transparent 3%),
+      radial-gradient(circle at 31% 66%,rgba(80,105,145,.22) 0 3%,transparent 4%),
+      radial-gradient(circle at 51% 38%,rgba(170,195,225,.16) 0 2%,transparent 3%),
+      radial-gradient(circle at 72% 63%,rgba(75,105,145,.20) 0 3%,transparent 4%),
+      radial-gradient(circle at 87% 40%,rgba(145,170,210,.16) 0 2%,transparent 3%),
+      linear-gradient(175deg,#26364e 0%,#111a2b 28%,#050a13 72%,#01030a 100%);
+    box-shadow:
+      inset 0 18px 38px rgba(180,215,255,.10),
+      inset 0 -35px 60px rgba(0,0,0,.72),
+      0 -2px 20px rgba(92,170,255,.22);
+    transform:rotate(-1deg);
+    animation:meteorSurfaceFloat 8s ease-in-out infinite alternate;
+  }
+  .astro-rocks::after{
+    content:''; position:absolute; left:0; right:0; bottom:28%;
+    height:55%; opacity:.65;
+    background:
+      radial-gradient(ellipse at 15% 65%,rgba(110,190,255,.18),transparent 18%),
+      radial-gradient(ellipse at 50% 48%,rgba(80,160,255,.16),transparent 23%),
+      radial-gradient(ellipse at 82% 62%,rgba(120,185,255,.13),transparent 19%);
+    filter:blur(9px);
+    animation:meteorGlowPulse 4.5s ease-in-out infinite alternate;
+  }
+  .astro-rocks .rk{
+    position:absolute; bottom:-12%; background:
+      radial-gradient(circle at 34% 25%,rgba(210,230,255,.30) 0 5%,transparent 6%),
+      radial-gradient(circle at 68% 55%,rgba(80,110,150,.32) 0 8%,transparent 9%),
+      linear-gradient(150deg,#354b67 0%,#18263b 38%,#070d17 78%);
+    border:1px solid rgba(130,175,220,.16);
+    clip-path:polygon(8% 30%,23% 9%,46% 5%,67% 15%,91% 39%,97% 68%,78% 90%,48% 96%,20% 84%,4% 61%);
+    box-shadow:inset 10px 8px 18px rgba(190,220,255,.08), inset -10px -14px 24px rgba(0,0,0,.55);
+    opacity:.92;
+    animation:rockDrift 7s ease-in-out infinite alternate;
+  }
+  .astro-rocks .r1{left:-4%;width:18%;height:66%;animation-delay:-1s}
+  .astro-rocks .r2{left:10%;width:15%;height:88%;animation-delay:-4s}
+  .astro-rocks .r3{left:25%;width:13%;height:57%;animation-delay:-2s}
+  .astro-rocks .r4{left:38%;width:18%;height:79%;animation-delay:-5s}
+  .astro-rocks .r5{left:55%;width:14%;height:61%;animation-delay:-3s}
+  .astro-rocks .r6{left:67%;width:18%;height:91%;animation-delay:-6s}
+  .astro-rocks .r7{left:83%;width:15%;height:70%;animation-delay:-2.5s}
+  .astro-rocks .r8{left:94%;width:14%;height:58%;animation-delay:-4.5s}
+
+  /* Meteor kecil dekat area tombol, bukan meteor yang melintas di seluruh layar */
+  .astro-rocks .rk::before{
+    content:''; position:absolute; width:34%; height:9%; left:14%; top:28%;
+    border-radius:50%; transform:rotate(-18deg);
+    background:rgba(120,175,220,.18);
+    box-shadow:0 0 12px rgba(70,170,255,.12);
+  }
+  .astro-rocks .rk::after{
+    content:''; position:absolute; width:18%; height:18%; right:17%; top:18%;
+    border-radius:50%; background:rgba(8,14,25,.55);
+    box-shadow:0 0 0 2px rgba(130,170,210,.06), 0 0 10px rgba(80,150,255,.08);
+  }
+  @keyframes meteorSurfaceFloat{
+    from{transform:translateY(3px) rotate(-1deg)}
+    to{transform:translateY(-5px) rotate(.6deg)}
+  }
+  @keyframes meteorGlowPulse{
+    from{opacity:.42;transform:scale(.98)}
+    to{opacity:.82;transform:scale(1.03)}
+  }
+  @keyframes rockDrift{
+    from{transform:translateY(2px) rotate(-1deg)}
+    to{transform:translateY(-4px) rotate(1deg)}
+  }
+  .astro-wallet{ display:none !important; }
+  .astro-menu-bar::before{
+    content:''; position:absolute; left:2%; right:2%; bottom:100%; height:22px;
+    background:linear-gradient(90deg,transparent,rgba(80,170,255,.16),transparent);
+    filter:blur(5px); pointer-events:none;
+    animation:buttonHorizonPulse 3.8s ease-in-out infinite alternate;
+  }
+  @keyframes buttonHorizonPulse{
+    from{opacity:.35;transform:scaleX(.92)}
+    to{opacity:.85;transform:scaleX(1)}
+  }
+  .astro-menu-bar{ position:absolute; z-index:10; left:1.5%; right:1.5%; bottom:2.2%; width:auto; margin:0; display:flex; align-items:flex-end; gap:8px; }
+  .astro-btn{ flex:1; min-width:0; height:58px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-family:'Press Start 2P',monospace; font-size:clamp(7px,.72vw,11px);
+    letter-spacing:.2px; color:#d8efff; background:linear-gradient(180deg,#0b1d37,#030b18); border:2px solid #17507c; border-radius:5px; padding:6px; cursor:pointer;
+    box-shadow:0 4px 0 #02050b, inset 0 1px 0 rgba(255,255,255,.08), 0 0 10px rgba(0,120,220,.12); }
+  .astro-btn{
+    position:relative; overflow:hidden;
+  }
+  .astro-btn::before{
+    content:''; position:absolute; left:-120%; top:0; width:70%; height:100%;
+    background:linear-gradient(105deg,transparent,rgba(140,225,255,.16),transparent);
+    transform:skewX(-18deg); animation:buttonSweep 5.5s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .astro-btn::after{
+    content:''; position:absolute; inset:1px; border:1px solid rgba(120,210,255,.08);
+    border-radius:4px; pointer-events:none;
+  }
+  .astro-btn-play::before{animation-delay:-2.2s}
+  @keyframes buttonSweep{
+    0%,55%{left:-120%}
+    75%{left:140%}
+    100%{left:140%}
+  }
+  .astro-btn-ic{font-size:13px}.astro-btn:hover{filter:brightness(1.3)}.astro-btn:active{transform:translateY(2px)}
+  .astro-btn-play{ flex:1.25; height:78px; margin-bottom:-1px; font-size:clamp(11px,1.15vw,17px); color:#fff; background:linear-gradient(180deg,#3a0f22,#170410); border-color:#ff3f81;
+    box-shadow:0 5px 0 #02050b, inset 0 0 20px rgba(255,63,129,.28), 0 0 18px rgba(255,63,129,.58), 0 0 40px rgba(255,63,129,.32); transform:none; }
+  .astro-btn-play .astro-btn-ic{ filter:drop-shadow(0 0 8px #ff85c2); }
+  .astro-btn-play:active{transform:translateY(2px)}
+  /* ==== NEON PALETTE PER TOMBOL ==== */
+  #missionBtn{ border-color:#a259ff; color:#ecdcff;
+    box-shadow:0 4px 0 #02050b, inset 0 1px 0 rgba(255,255,255,.08), 0 0 12px rgba(162,89,255,.55), 0 0 28px rgba(162,89,255,.28); }
+  #missionBtn .astro-btn-ic{ filter:drop-shadow(0 0 6px #c79bff); }
+  #settingsBtn{ border-color:#22d3ee; color:#d6faff;
+    box-shadow:0 4px 0 #02050b, inset 0 1px 0 rgba(255,255,255,.08), 0 0 12px rgba(34,211,238,.55), 0 0 28px rgba(34,211,238,.28); }
+  #settingsBtn .astro-btn-ic{ filter:drop-shadow(0 0 6px #7fecff); }
+  #helpBtn{ border-color:#2dd4bf; color:#d6fff5;
+    box-shadow:0 4px 0 #02050b, inset 0 1px 0 rgba(255,255,255,.08), 0 0 12px rgba(45,212,191,.5), 0 0 28px rgba(45,212,191,.25); }
+  #helpBtn .astro-btn-ic{ filter:drop-shadow(0 0 6px #6ff2df); }
+  #quitBtn{ border-color:#ff6b4a; color:#ffe2d6;
+    box-shadow:0 4px 0 #02050b, inset 0 1px 0 rgba(255,255,255,.08), 0 0 12px rgba(255,107,74,.5), 0 0 28px rgba(255,107,74,.25); }
+  #quitBtn .astro-btn-ic{ filter:drop-shadow(0 0 6px #ff9c7f); }
+  .astro-story{ position:absolute; z-index:10; right:3.2%; bottom:12%; font-family:'Press Start 2P'; font-size:clamp(7px,.75vw,11px); color:#f1b98c; text-shadow:0 2px 3px #000; cursor:pointer; }
+  .astro-welcome{ position:absolute; z-index:10; left:4.5%; top:4%; font-family:'Press Start 2P'; font-size:clamp(7px,.75vw,11px); color:#c6d9ef; text-shadow:0 2px 3px #000; }
+  .astro-notyou{ position:absolute; z-index:10; right:4.5%; top:4%; font-family:'Press Start 2P'; font-size:clamp(7px,.7vw,10px); color:#d6a68a; text-shadow:0 2px 3px #000; }
+  @media (max-width:700px){ .astro-ship{width:48vw;height:31vw;top:13%}.astro-title{top:8%;font-size:clamp(15px,5vw,28px)}.astro-planet{top:15%;width:100vw}.astro-menu-bar{gap:4px;bottom:2%}.astro-btn{height:52px;font-size:6px}.astro-btn-play{height:68px;font-size:9px}.astro-wallet{display:none !important}.astro-welcome,.astro-notyou{display:none}.astro-story{bottom:12%;right:3%;font-size:6px}}
+
+  /* ==== Popup pilih kesulitan (muncul saat tekan PLAY, gaya Astro Avenger) ==== */
+  .diff-modal-box{ width:min(420px,calc(100vw - 36px)); text-align:center; }
+  .diff-modal-title{ font:12px 'Press Start 2P'; color:var(--cyan2); margin:2px 0 16px; letter-spacing:.5px; }
+  .diff-modal-row{ display:flex; gap:8px; margin-bottom:16px; }
+  .diff-choice{ flex:1; display:flex; flex-direction:column; align-items:center; gap:10px; padding:12px 4px; border-radius:9px;
+    background:linear-gradient(180deg,#0e1830,#070c1a); border:1px solid rgba(120,200,255,.22); cursor:pointer; }
+  .diff-choice-label{ font:9px 'Press Start 2P'; letter-spacing:.5px; }
+  .diff-choice-check{ width:16px; height:16px; border-radius:4px; border:2px solid rgba(157,231,255,.35); background:rgba(0,0,0,.3); }
+  .diff-choice.on{ border-color:var(--cyan); box-shadow:0 0 14px rgba(78,205,196,.25); }
+  .diff-choice.on .diff-choice-check{ background:var(--cyan); border-color:var(--cyan); box-shadow:0 0 8px rgba(78,205,196,.6); }
+  .diff-modal-actions{ display:flex; gap:8px; }
+  .diff-modal-cancel, .diff-modal-play{ flex:1; }
+  .diff-modal-play{ background:linear-gradient(180deg,#8FE9FF,#3FC8E0); color:#04121a; box-shadow:0 3px 0 #1E7F91; }
+  #mapPanel { display: none; width: min(420px, calc(100vw - 40px)); margin-left:auto; margin-right:auto; }
+  /* Dekorasi khusus layar PILIH LEVEL — hanya aktif di mapPanel */
+  #mapPanel { position:relative; isolation:isolate; }
+  #mapPanel > *:not(.levelDecor) { position:relative; z-index:2; }
+  .levelDecor { position:absolute; inset:-90px -35px -55px; z-index:0; pointer-events:none; overflow:hidden; border-radius:28px; }
+  .levelDecor::before { content:""; position:absolute; inset:0; background:
+    radial-gradient(circle at 15% 16%, rgba(185,140,224,.28) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 12%, rgba(255,209,102,.35) 0 2px, transparent 3px),
+    radial-gradient(circle at 8% 52%, rgba(78,205,196,.30) 0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 92% 47%, rgba(255,107,107,.28) 0 2px, transparent 3px),
+    radial-gradient(circle at 18% 82%, rgba(185,140,224,.32) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 86%, rgba(78,205,196,.28) 0 1.5px, transparent 2.5px),
+    radial-gradient(ellipse at 50% 28%, rgba(137,76,220,.20), transparent 58%); opacity:.95; }
+  .levelDecor::after { content:""; position:absolute; left:50%; top:22%; width:150%; height:45%; transform:translateX(-50%) rotate(-9deg); background:radial-gradient(ellipse, rgba(141,93,255,.13), transparent 62%); filter:blur(18px); }
+  .level-star { position:absolute; width:4px; height:4px; border-radius:50%; background:#F4F2FF; box-shadow:0 0 7px 2px rgba(185,140,224,.7); animation:levelTwinkle 2.8s ease-in-out infinite; }
+  .level-star.s1{left:6%;top:9%}.level-star.s2{left:93%;top:19%;width:3px;height:3px;animation-delay:.7s}.level-star.s3{left:11%;top:37%;width:3px;height:3px;animation-delay:1.2s}.level-star.s4{left:96%;top:58%;animation-delay:.3s}.level-star.s5{left:8%;top:67%;width:3px;height:3px;animation-delay:1.7s}.level-star.s6{left:90%;top:76%;animation-delay:1s}.level-star.s7{left:48%;top:4%;width:3px;height:3px;animation-delay:2s}.level-star.s8{left:58%;top:93%;width:3px;height:3px;animation-delay:.5s}
+  @keyframes levelTwinkle{0%,100%{opacity:.35;transform:scale(.7)}50%{opacity:1;transform:scale(1.45)}}
+  .level-orb{position:absolute;border-radius:50%;opacity:.22;filter:blur(.2px)}
+  .level-orb.o1{width:30px;height:30px;left:-8px;top:28%;background:radial-gradient(circle at 35% 30%,#B98CE0,#39276f 70%,transparent 72%)}
+  .level-orb.o2{width:22px;height:22px;right:2px;top:39%;background:radial-gradient(circle at 35% 30%,#4ECDC4,#153d56 70%,transparent 72%)}
+  .level-orb.o3{width:42px;height:42px;left:2%;bottom:12%;background:radial-gradient(circle at 35% 30%,#FF6B6B,#55204a 70%,transparent 72%)}
+  .level-orb.o4{width:26px;height:26px;right:5%;bottom:23%;background:radial-gradient(circle at 35% 30%,#FFD166,#60472a 70%,transparent 72%)}
+  .level-meteor{position:absolute;width:44px;height:3px;border-radius:99px;background:linear-gradient(90deg,transparent,rgba(185,140,224,.85),rgba(244,242,255,.95));box-shadow:0 0 10px rgba(185,140,224,.65);transform:rotate(-28deg);opacity:.55}
+  .level-meteor.m1{left:-8%;top:31%}.level-meteor.m2{right:-7%;top:64%;transform:rotate(-34deg) scale(.75)}.level-meteor.m3{left:72%;bottom:7%;transform:rotate(-25deg) scale(.55);opacity:.4}
+  .level-corner{position:absolute;width:58px;height:58px;border:1px solid rgba(185,140,224,.18);border-radius:50%}.level-corner.c1{left:-42px;top:48%;box-shadow:0 0 24px rgba(185,140,224,.12)}.level-corner.c2{right:-42px;top:29%;box-shadow:0 0 24px rgba(78,205,196,.10)}
+
+  #mapPlanetTabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; }
+  #mapPlanetTabs::-webkit-scrollbar { height: 4px; }
+  .planet-tab-btn { flex: none; font-family:'Press Start 2P'; font-size: 15px; width: 42px; height: 42px; border-radius: 50%; border: 2px solid #3A3570; background: var(--panel); cursor: pointer; display:flex; align-items:center; justify-content:center; transition: all 0.15s ease; }
+  .planet-tab-btn.active { border-color: var(--amber); box-shadow: 0 0 12px rgba(255,209,102,0.4); transform: scale(1.08); }
+  .planet-tab-btn.locked { opacity: 0.35; cursor: not-allowed; }
+  #mapArea { position: relative; width: 100%; aspect-ratio: 300/220; margin-bottom: 10px; background: transparent; border-radius: 0; overflow: visible; }
+  #mapSvg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+  #mapNodes { position: absolute; inset: 0; z-index: 2; }
+  .map-node { position: absolute; width: 56px; height: 56px; margin-left: -28px; margin-top: -28px; border-radius: 50%; border: 3px solid #3A3570; background: linear-gradient(160deg,#29235a,#171532); color: var(--dim); font-family:'Press Start 2P'; font-size: 12px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.35); transition: transform 0.15s ease; }
+  .map-node.unlocked { color: var(--cyan); border-color: #4ECDC466; }
+  .map-node.selected { border-color: var(--amber); color: var(--amber); box-shadow: 0 4px 0 rgba(0,0,0,0.35), 0 0 16px rgba(255,209,102,0.5); transform: scale(1.1); }
+  .map-node.boss { border-color: rgba(255,77,141,0.6); }
+  .map-node.miniboss { border-color: rgba(255,209,102,0.7); }
+  .map-node.locked { opacity: 0.4; cursor: not-allowed; }
+  .map-node:hover.unlocked { transform: scale(1.06); }
+  #mapInfo { background: rgba(32,28,68,0.65); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 8px 10px; margin-bottom: 10px; font-size: 11px; color: #C9C6E8; }
+  .icon-box { width: 52px; height: 52px; border-radius: 12px; background: radial-gradient(circle, rgba(255,255,255,0.08), rgba(0,0,0,0.2)); display:flex; align-items:center; justify-content:center; flex: none; }
+  .icon-box svg { width: 40px; height: 40px; overflow: visible; }
+  .weapon-top.with-icon { align-items: center; }
+  .custom-ship-card .cs-top { display: flex; gap: 10px; align-items: center; margin-bottom: 4px; }
+
+  .custom-ship-preview-box { width:78px; height:82px; border-radius:11px; background:radial-gradient(circle at 50% 45%, rgba(78,205,220,.10), rgba(0,0,0,.28)); border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; flex:0 0 78px; }
+  .custom-ship-preview { width:78px; height:82px; display:block; }
+  .custom-preview-label { position:absolute; bottom:3px; left:0; right:0; text-align:center; font-size:7px; color:rgba(244,242,255,.45); font-family:'Press Start 2P',monospace; pointer-events:none; }
+  .custom-ship-card .cs-top { align-items:center; }
+
+  /* ---- Hangar kustomisasi baru: pesawat di tengah, slot senjata kiri/kanan ---- */
+  .hangar { display:flex; flex-direction:column; align-items:center; gap:10px; margin: 10px 0 6px; }
+  .hangar-stage { display:flex; align-items:center; justify-content:center; gap:10px; }
+  .hangar-arrows-row { display:flex; align-items:center; justify-content:center; gap:18px; margin-top:2px; }
+  .hangar-arrow { width:34px; height:34px; flex:none; border-radius:50%; background:linear-gradient(180deg,#3A3570,#201C44); border:1px solid rgba(255,255,255,.12); color:var(--white); font-size:16px; line-height:1; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,.3); }
+  .hangar-arrow:active { transform: translateY(2px); box-shadow:none; }
+  .hangar-arrow:disabled { opacity:.3; cursor:not-allowed; }
+  .hangar-preview { width:132px; height:140px; flex:0 0 132px; border-radius:16px; background: radial-gradient(circle at 50% 42%, rgba(120,110,220,.18), rgba(0,0,0,.32)); border:1px solid rgba(255,255,255,.1); box-shadow: inset 0 0 22px rgba(120,110,220,.12); }
+  .hangar-preview .custom-ship-preview { width:132px; height:140px; }
+  .weapon-slot-btn { width:58px; height:66px; flex:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border-radius:12px; background: linear-gradient(160deg,#241F4E,#1B1840); border:2px dashed rgba(255,255,255,.18); color:var(--dim); cursor:pointer; font-family:'Press Start 2P',monospace; font-size:7.5px; padding:0; transition: border-color .15s ease, transform .1s ease; }
+  .weapon-slot-btn:active { transform: scale(.96); }
+  .weapon-slot-btn.filled { border-style: solid; border-color: rgba(255,209,102,.55); color: var(--amber); }
+  .weapon-slot-btn.open { border-color: var(--cyan); color: var(--cyan); }
+  .weapon-slot-btn .slot-icon { width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .weapon-slot-btn .slot-icon svg { width:100%; height:100%; }
+  .weapon-slot-btn .slot-icon.empty::before { content:'+'; font-size:20px; color: rgba(255,255,255,.35); font-family:'Nunito',sans-serif; }
+  .hangar-shipinfo { text-align:center; margin-bottom:10px; }
+  .hangar-shipinfo h3 { font-size:14px; color:var(--white); }
+  .hangar-shipinfo p { margin:3px 0; font-size:11px; color:var(--dim); line-height:1.4; }
+  .stat-bars { width:100%; max-width:280px; margin:10px auto 4px; text-align:left; }
+  .stat-row { margin-bottom:7px; }
+  .stat-row-head { display:flex; justify-content:space-between; font-family:'Press Start 2P',monospace; font-size:8.5px; color:var(--dim); margin-bottom:3px; letter-spacing:.5px; }
+  .stat-row-head .stat-val { color:var(--cyan); }
+  .stat-bar-bg { height:9px; border-radius:5px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); overflow:hidden; }
+  .stat-bar-fill { height:100%; border-radius:5px; transition: width .35s cubic-bezier(.3,.9,.3,1); box-shadow:0 0 8px currentColor; }
+  .stat-bar-fill.atk { background:linear-gradient(90deg,#FF6B6B,#FF9F6B); color:#FF6B6B; }
+  .stat-bar-fill.spd { background:linear-gradient(90deg,#4ECDC4,#66D9EF); color:#4ECDC4; }
+  .stat-bar-fill.def { background:linear-gradient(90deg,#B98CE0,#8FD3FF); color:#B98CE0; }
+  .hangar-arrow:hover:not(:disabled) { border-color: var(--amber); box-shadow:0 3px 0 rgba(0,0,0,.3), 0 0 10px rgba(255,209,102,.35); transform: translateY(-1px); }
+  .weapon-slot-btn:hover { border-color: var(--cyan); transform: translateY(-1px); }
+  .weapon-slot-btn.just-equipped { animation: slotEquipFlash .5s ease; }
+  @keyframes slotEquipFlash { 0%{ box-shadow:0 0 0 rgba(255,209,102,0);} 40%{ box-shadow:0 0 22px rgba(255,209,102,.85);} 100%{ box-shadow:0 0 0 rgba(255,209,102,0);} }
+  .ship-dots { display:flex; align-items:center; justify-content:center; gap:6px; margin:5px 0; }
+  .ship-dots span { width:7px; height:7px; border-radius:50%; background: rgba(255,255,255,.18); transition: background .15s ease, transform .15s ease; }
+  .ship-dots span.on { background: var(--amber); transform: scale(1.25); }
+  .weapon-picker { display:none; background: rgba(18,16,42,0.9); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:10px; margin-bottom:12px; text-align:left; max-height: 260px; overflow-y:auto; }
+  .weapon-picker.show { display:block; }
+  .wp-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; font-family:'Press Start 2P',monospace; font-size:9px; color:var(--cyan); }
+  .wp-header button { background:none; border:none; color:var(--dim); font-size:14px; cursor:pointer; padding:2px 6px; }
+  .wp-item { display:flex; align-items:center; gap:10px; padding:8px 9px; border-radius:9px; background: var(--panel); margin-bottom:6px; cursor:pointer; border: 1px solid transparent; }
+  .wp-item.equipped { border-color: var(--amber); background: rgba(255,209,102,0.1); }
+  .wp-item .wp-icon { width:38px; height:38px; flex:none; border-radius:9px; background: radial-gradient(circle at 50% 42%, rgba(255,255,255,0.10), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; padding:5px; box-sizing:border-box; }
+  .wp-item .wp-icon svg { width:100%; height:100%; display:block; }
+  .wp-item .wp-name { font-size:12px; color:var(--white); font-weight:800; }
+  .wp-item .wp-lv { font-size:9.5px; color:var(--dim); }
+  .wp-item .wp-tag { margin-left:auto; font-family:'Press Start 2P',monospace; font-size:8px; color:var(--amber); flex:none; }
+  .wp-empty-row { display:flex; align-items:center; gap:10px; padding:8px 9px; border-radius:9px; background: rgba(255,255,255,.03); margin-bottom:6px; cursor:pointer; color:var(--dim); font-size:11.5px; border: 1px solid transparent; }
+  .wp-empty-row.equipped { border-color: var(--amber); color: var(--amber); }
+  #levelSelectWrap { width: min(100%, 380px); margin-bottom: 8px; }
+  #levelSelectInfo {
+    background: rgba(32,28,68,0.75); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 9px; padding: 8px 10px; margin-bottom: 8px;
+    font-size: 10px; color: #C9C6E8; line-height: 1.5;
+  }
+  #levelSelect { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .level-choice {
+    font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 9px 3px;
+    border-radius: 7px; border: 2px solid #3A3570; background: var(--panel);
+    color: var(--dim); cursor: pointer; min-height: 36px;
+  }
+  .level-choice.unlocked { color: var(--cyan); }
+  .level-choice.selected { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 10px rgba(255,209,102,0.25); }
+  .level-choice.boss { border-color: rgba(255,77,141,0.5); }
+  .level-choice:disabled { opacity: 0.42; cursor: not-allowed; }
+  .planet-tag { font-size: 8px; color: var(--purple); margin-top: 3px; }
+  #shopPanel, #missionPanel { display: none; width: 100%; max-width: 380px; }
+  #shopPanel .back-btn { margin-top: 12px; }
+  .tab-row { display: flex; gap: 8px; margin-bottom: 14px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 10px; }
+  .tab-btn { flex: 1; font-family: 'Press Start 2P', monospace; font-size: 10px; padding: 10px 8px; border-radius: 7px; border: none; background: transparent; color: var(--dim); cursor: pointer; transition: all 0.15s ease; }
+  .tab-btn.active { background: linear-gradient(180deg, #3A3570, #2A2658); color: var(--amber); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* === TAMPILAN TOKO PESAWAT: gaya kartu seperti referensi === */
+  #shipTab #shipList { display:flex; flex-direction:column; gap:10px; }
+  .ship-shop-card {
+    position:relative; display:grid; grid-template-columns:72px minmax(0,1fr) auto; gap:10px;
+    background:linear-gradient(145deg,#111b37 0%,#151d3b 58%,#10182f 100%);
+    border:1px solid rgba(255,209,102,.92); border-radius:14px; padding:11px 12px 9px;
+    text-align:left; box-shadow:0 3px 0 rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.035);
+    overflow:hidden;
+  }
+  .ship-shop-card::before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 10% 20%,rgba(78,205,196,.07),transparent 38%), radial-gradient(circle at 95% 90%,rgba(185,140,224,.06),transparent 35%); }
+  .ship-shop-card.equipped { border-color:rgba(255,209,102,1); box-shadow:0 3px 0 rgba(0,0,0,.34),0 0 0 1px rgba(255,209,102,.16),inset 0 1px 0 rgba(255,255,255,.035); }
+  .ship-shop-icon { width:72px; height:84px; border-radius:9px; background:linear-gradient(145deg,#0c152b,#111c36); border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; align-self:start; position:relative; z-index:1; overflow:hidden; }
+  .ship-shop-preview { width:72px; height:84px; display:block; transition: filter 0.3s ease, opacity 0.3s ease; }
+  .ship-shop-icon svg { width:62px; height:62px; overflow:visible; }
+  .ship-shop-card.locked .ship-shop-preview, .weapon-card.locked .weapon-shop-preview { filter: saturate(.55) brightness(.82); opacity: 0.68; }
+  .weapon-preview-label, .ship-preview-label, .custom-preview-label, .armory-preview-label { display:none; }
+  .ship-shop-icon.is-locked::after, .weapon-shop-icon.is-locked::after { content: '🔒'; position: absolute; left: auto; top: auto; right: 3px; bottom: 3px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 14px; opacity: 0.95; pointer-events: none; text-shadow: 0 0 8px rgba(0,0,0,0.9); z-index: 2; background: rgba(5,8,20,.82); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; box-sizing: border-box; }
+  .ship-preview-label { position:absolute; bottom:3px; left:0; right:0; text-align:center; font-size:7px; color:rgba(244,242,255,.45); font-family:'Press Start 2P',monospace; pointer-events:none; }
+
+  .rocket-shop-icon { background:linear-gradient(145deg,#0b1227,#151b36); position:relative; }
+  .rocket-shop-icon::before{ content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 42%,rgba(102,217,239,.22),transparent 62%); animation:rocketIconGlow 2.6s ease-in-out infinite alternate; pointer-events:none; }
+  @keyframes rocketIconGlow{ from{opacity:.5} to{opacity:1} }
+  .rocket-shop-icon .rocket-shop-overlay { position:absolute; inset:4px; border:1px solid rgba(102,217,239,.22); pointer-events:none; opacity:.9; overflow:hidden; }
+  .rocket-shop-icon .rocket-shop-overlay::before,.rocket-shop-icon .rocket-shop-overlay::after { content:''; position:absolute; width:9px; height:9px; border-color:rgba(255,209,102,.7); border-style:solid; }
+  .rocket-shop-icon .rocket-shop-overlay::before { left:-1px; top:-1px; border-width:1px 0 0 1px; }
+  .rocket-shop-icon .rocket-shop-overlay::after { right:-1px; bottom:-1px; border-width:0 1px 1px 0; }
+  .rocket-shop-overlay span { position:absolute; top:3px; left:4px; font:5px 'Press Start 2P',monospace; color:rgba(244,242,255,.42); letter-spacing:.3px; }
+  .rocket-shop-overlay i { position:absolute; left:7px; right:7px; bottom:13px; border-top:1px dashed rgba(102,217,239,.25); }
+  .rocket-shop-overlay b { position:absolute; right:3px; bottom:3px; font:5px 'Press Start 2P',monospace; color:rgba(102,217,239,.7); font-weight:400; }
+  .rocket-shop-icon:not(.is-locked)::after { content:''; position:absolute; left:0; right:0; height:14px; top:-14px; background:linear-gradient(180deg,transparent,rgba(157,231,255,.3),transparent); animation:rocketScanLine 2.8s linear infinite; pointer-events:none; z-index:2; }
+  @keyframes rocketScanLine{ 0%{top:-14px} 100%{top:100%} }
+  .rocket-shop-icon svg { position:relative; z-index:1; filter:drop-shadow(0 0 6px rgba(102,217,239,.4)) drop-shadow(0 0 14px rgba(102,217,239,.18)); }
+  .weapon-shop-icon { width:72px; height:84px; border-radius:9px; background:linear-gradient(145deg,#0c152b,#111c36); border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; flex:0 0 72px; }
+  .weapon-shop-preview { width:72px; height:84px; display:block; transition: filter 0.3s ease, opacity 0.3s ease; }
+  .weapon-preview-label { position:absolute; bottom:3px; left:0; right:0; text-align:center; font-size:7px; color:rgba(244,242,255,.45); font-family:'Press Start 2P',monospace; pointer-events:none; }
+  .ship-shop-main { min-width:0; position:relative; z-index:1; }
+  .ship-shop-title { display:flex; align-items:center; gap:6px; min-width:0; margin:0 0 5px; }
+  .ship-shop-title h3 { margin:0; color:#F4F2FF; font-size:14px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ship-level { color:var(--amber); font-family:'Press Start 2P',monospace; font-size:8px; white-space:nowrap; }
+  .ship-status { display:inline-flex; align-items:center; gap:5px; font-family:'Press Start 2P',monospace; font-size:8px; color:var(--cyan); white-space:nowrap; }
+  .ship-status::before { content:""; width:8px; height:8px; border-radius:50%; background:var(--cyan); box-shadow:0 0 7px rgba(78,205,196,.55); }
+  .ship-status.locked { color:#A8A4CC; }
+  .ship-status.locked::before { background:#5B567D; box-shadow:none; }
+  .ship-desc { margin:0 0 5px; color:#C9C6E8; font-size:11px; line-height:1.35; }
+  .ship-ability { margin:2px 0 0; font-size:10.5px; line-height:1.35; }
+  .ship-ability.basic { color:var(--cyan); }
+  .ship-ability b { font-weight:900; }
+  .ship-level-dots { display:flex; gap:4px; margin-top:6px; }
+  .ship-level-dots span { width:8px; height:8px; border-radius:50%; background:#3A3A62; border:1px solid rgba(255,255,255,.04); }
+  .ship-level-dots span.on { background:var(--amber); box-shadow:0 0 5px rgba(255,209,102,.4); }
+  .ship-shop-action { display:flex; flex-direction:column; align-items:flex-end; gap:7px; min-width:96px; position:relative; z-index:1; }
+  .ship-shop-action button { font-family:'Press Start 2P',monospace; font-size:8px; padding:8px 9px; border:0; border-radius:5px; cursor:pointer; white-space:nowrap; }
+  .ship-equip-tag { font-family:'Press Start 2P',monospace; font-size:8px; color:var(--amber); background:rgba(255,209,102,.08); border:1px solid rgba(255,209,102,.45); border-radius:5px; padding:7px 6px; white-space:nowrap; }
+  .ship-buy-btn { background:var(--amber); color:var(--bg-deep); }
+  .ship-upgrade-btn { background:linear-gradient(180deg,#C77DFF,#A846F0); color:#fff; box-shadow:0 2px 0 #7132A8; }
+  .ship-upgrade-btn:disabled,.ship-buy-btn:disabled { background:#4A4570; color:#A8A4CC; box-shadow:none; cursor:not-allowed; }
+  .ship-shop-price { font-size:9px; color:var(--amber); text-align:right; white-space:nowrap; }
+  @media (max-width:390px) {
+    .ship-shop-card { grid-template-columns:62px minmax(0,1fr); padding:10px; }
+    .ship-shop-icon { width:62px; height:74px; }
+    .ship-shop-preview { width:62px; height:74px; }
+    .ship-shop-icon svg { width:54px; height:54px; }
+    .ship-shop-action { grid-column:2; flex-direction:row; justify-content:flex-end; align-items:center; min-width:0; margin-top:-2px; }
+    .ship-shop-action .ship-equip-tag { order:0; }
+    .ship-shop-title h3 { font-size:13px; }
+  }
+
+  .weapon-card { background: linear-gradient(160deg, #241F4E, #1B1840); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; text-align: left; box-shadow: 0 3px 0 rgba(0,0,0,0.3); transition: border-color 0.15s ease; }
+  .weapon-card.equipped { border-color: var(--amber); box-shadow: 0 3px 0 rgba(0,0,0,0.3), 0 0 0 1px rgba(255,209,102,0.25); }
+  .weapon-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .weapon-info h3 { margin: 0 0 4px; font-size: 14px; color: var(--white); }
+  .weapon-info p { margin: 0; font-size: 11.5px; color: var(--dim); line-height: 1.4; }
+  .weapon-action { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .weapon-action button { font-family: 'Press Start 2P', monospace; font-size: 9.5px; padding: 8px 10px; border: none; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+  .slot-btnrow { display: flex; gap: 4px; }
+  .slot-btnrow button { font-size: 8px; padding: 6px 7px; }
+  .buy-btn { background: var(--amber); color: var(--bg-deep); }
+  .buy-btn:disabled { background: #4A4570; color: var(--dim); cursor: not-allowed; }
+  .equip-btn { background: var(--cyan); color: var(--bg-deep); }
+  .upgrade-btn { background: var(--purple); color: var(--bg-deep); }
+  .upgrade-btn:disabled { background: #4A4570; color: var(--dim); cursor: not-allowed; }
+  .equipped-tag { background: transparent; color: var(--amber); font-size: 10px; padding: 8px 4px; }
+  .shop-hangar-hint { font-size: 9.5px; color: var(--dim); margin-top: 2px; font-style: italic; }
+  .level-dots { display: flex; gap: 4px; margin-top: 6px; }
+  .level-dots span { width: 8px; height: 8px; border-radius: 50%; background: #3A3570; }
+  .level-dots span.on { background: var(--purple); }
+  .swatch { width: 22px; height: 22px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; border: 2px solid rgba(255,255,255,0.3); }
+  .mission-card { background: var(--panel); border: 2px solid #3A3570; border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; text-align: left; }
+  .mission-card.done { border-color: var(--amber); }
+  .mission-card h4 { margin: 0 0 3px; font-size: 12.5px; }
+  .mission-card p { margin: 0 0 6px; font-size: 11px; color: var(--dim); }
+  .mission-bar-bg { background: rgba(255,255,255,0.1); border-radius: 5px; height: 7px; overflow: hidden; }
+  .mission-bar-fill { height: 100%; background: var(--purple); }
+  .mission-card.done .mission-bar-fill { background: var(--amber); }
+  .mission-reward { font-size: 10.5px; color: var(--amber); margin-top: 4px; }
+
+  /* ===== v23 POLISH LAYER ===== */
+  :root{
+    --hud-glass:rgba(8,14,30,.62);
+    --line:rgba(157,231,255,.18);
+    --cyan2:#9DE7FF;
+    --violet:#8F7CFF;
+  }
+  button{ -webkit-tap-highlight-color:transparent; }
+  .sci-title{letter-spacing:1.5px;text-shadow:0 0 16px rgba(157,231,255,.28)}
+  .glass-card{background:linear-gradient(145deg,rgba(18,27,53,.92),rgba(8,13,29,.88));border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.045);border-radius:14px}
+  #hud .chip{background:var(--hud-glass);border-color:rgba(157,231,255,.13);box-shadow:0 4px 14px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.04)}
+  #hud .chip::before{content:"";display:inline-block;width:4px;height:4px;border-radius:50%;background:currentColor;box-shadow:0 0 7px currentColor;margin-right:5px;vertical-align:2px;opacity:.8}
+  #pauseBtn{border-color:rgba(157,231,255,.25);background:rgba(8,15,31,.82);box-shadow:0 0 14px rgba(78,205,196,.12),0 3px 0 rgba(0,0,0,.35)}
+  #screenFlash{mix-blend-mode:screen}
+  .armory-shell{position:relative;overflow:hidden;border:1px solid rgba(157,231,255,.16);border-radius:16px;padding:10px;background:linear-gradient(145deg,rgba(7,14,29,.94),rgba(14,10,34,.9));box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .armory-shell::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(157,231,255,.025) 0 1px,transparent 1px 5px);opacity:.5}
+  .armory-head{display:flex;justify-content:space-between;align-items:center;padding:8px 5px 10px;position:relative}
+  .armory-code{font:7px 'Press Start 2P';color:rgba(157,231,255,.55);letter-spacing:1px}
+  #shopPanel .tab-row{position:relative;overflow-x:auto;scrollbar-width:none;gap:5px;background:rgba(0,0,0,.3);border:1px solid rgba(157,231,255,.09)}
+  #shopPanel .tab-row::-webkit-scrollbar{display:none}
+  #shopPanel .tab-btn{min-width:64px;flex:0 0 auto;font-size:8px;padding:9px 7px;border:1px solid transparent;display:flex;align-items:center;justify-content:center;gap:3px;white-space:nowrap;line-height:1}
+  #shopPanel .tab-btn.active{background:linear-gradient(180deg,rgba(78,205,196,.16),rgba(143,124,255,.12));border-color:rgba(157,231,255,.25);color:var(--cyan2);box-shadow:0 0 14px rgba(78,205,196,.12)}
+  .armory-grid{display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow-y:auto;padding:3px 2px 7px;position:relative;overscroll-behavior:contain}
+  .armory-card{display:block;width:100%;min-height:88px;padding:10px 11px;border-radius:12px;background:linear-gradient(145deg,rgba(28,38,70,.96),rgba(12,17,36,.98));border:1px solid rgba(157,231,255,.16);position:relative;overflow:hidden;flex:none}
+  .armory-card::after{content:"";position:absolute;left:8px;right:8px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(157,231,255,.16),transparent);pointer-events:none}
+  .armory-card.equipped{border-color:rgba(255,209,102,.9);box-shadow:0 3px 0 rgba(0,0,0,.3),0 0 0 1px rgba(255,209,102,.2)}
+  .armory-top{display:grid;grid-template-columns:64px minmax(0,1fr) minmax(64px,auto);align-items:center;gap:10px;width:100%;min-height:66px;position:relative;z-index:1}
+  .armory-icon{width:54px;height:54px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:24px;background:radial-gradient(circle,rgba(157,231,255,.12),rgba(0,0,0,.24));border:1px solid rgba(157,231,255,.12)}
+  .armory-shop-icon{width:64px;height:64px;flex:0 0 64px;border-radius:11px;background:linear-gradient(145deg,#0c152b,#111c36);border:1px solid rgba(157,231,255,.16);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .armory-shop-preview{width:64px;height:64px;display:block;transition:filter .3s ease,opacity .3s ease}
+  .armory-card.locked .armory-shop-preview{filter:saturate(.6) brightness(.8);opacity:.62}
+  .armory-shop-icon.is-locked::after{content:'🔒';position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:3px;font-size:13px;opacity:.92;pointer-events:none;text-shadow:0 0 6px rgba(0,0,0,.9);z-index:2}
+  .armory-preview-label{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:6px;color:rgba(244,242,255,.42);font-family:'Press Start 2P',monospace;pointer-events:none}
+  .armory-info{min-width:0;overflow:visible}
+  .armory-card h3{margin:0 0 3px;font-size:12px;line-height:1.25;white-space:normal;overflow-wrap:anywhere}.armory-card p{margin:0;color:var(--dim);font-size:10px;line-height:1.32;overflow-wrap:anywhere}
+  .armory-stat{font:7px 'Press Start 2P';color:var(--cyan2);margin-top:5px}
+  .armory-status{font:7px 'Press Start 2P';margin:1px 0 4px;letter-spacing:.5px}
+  .armory-status.owned{color:var(--cyan2)}.armory-status.locked{color:var(--dim)}.armory-status.equipped{color:var(--amber)}
+  .armory-action{min-width:64px;max-width:112px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;padding-left:2px}
+  .armory-action button{font:8px 'Press Start 2P';border:0;border-radius:6px;padding:8px 8px;cursor:pointer;background:var(--cyan);color:#07101c;box-shadow:0 2px 0 #2c8e87;white-space:nowrap}
+  .armory-action button.up{background:linear-gradient(180deg,#C77DFF,#8F5BE8);color:white;box-shadow:0 2px 0 #5d3ca0}
+  .armory-action button.equip{background:var(--amber)}
+  .armory-action button:disabled{background:#3d4564;color:#8e93ad;box-shadow:none;cursor:not-allowed}
+  .armory-price{font:8px 'Press Start 2P';color:var(--amber);white-space:nowrap}
+  .level-pips{display:flex;gap:3px;margin-top:5px}.level-pips i{width:7px;height:7px;border-radius:50%;background:#343957}.level-pips i.on{background:var(--cyan);box-shadow:0 0 6px rgba(78,205,196,.55)}
+  .detail-modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(2,5,12,.72);backdrop-filter:blur(5px)}
+  .detail-modal.show{display:flex}.detail-box{width:min(350px,calc(100vw - 36px));padding:18px;position:relative}
+  .detail-close{position:absolute;right:10px;top:8px;border:0;background:none;color:var(--dim);font-size:18px}
+  .detail-preview{height:110px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(78,205,196,.12),transparent 68%);font-size:52px;overflow:hidden;position:relative}
+  .detail-preview canvas{width:100%;height:100%;display:block}
+  .detail-actions{display:flex;gap:7px;margin-top:12px}.detail-actions button{flex:1}
+  .setting-row{padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+  .setting-row:last-child{border-bottom:0}.setting-head{display:flex;justify-content:space-between;font:8px 'Press Start 2P';color:var(--dim);margin-bottom:7px}
+  .range{width:100%;accent-color:var(--cyan)}.setting-toggle{display:flex;gap:7px;flex-wrap:wrap}.setting-toggle button{font:8px 'Press Start 2P';padding:8px;border-radius:7px;border:1px solid #3A3570;background:var(--panel);color:var(--dim)}.setting-toggle button.on{border-color:var(--cyan);color:var(--cyan)}
+  .mini-notify{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(12px);z-index:70;opacity:0;pointer-events:none;padding:9px 13px;border-radius:9px;background:rgba(8,13,29,.94);border:1px solid rgba(157,231,255,.3);font:8px 'Press Start 2P';color:var(--cyan2);box-shadow:0 0 18px rgba(78,205,196,.16);transition:.22s}
+  .mini-notify.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media(max-width:390px){.armory-grid{max-height:58vh}.armory-card{min-height:82px;padding:9px}.armory-top{grid-template-columns:52px minmax(0,1fr) minmax(56px,auto);gap:8px;min-height:54px}.armory-shop-icon{width:52px;height:52px;flex-basis:52px}.armory-shop-preview{width:52px;height:52px}.armory-action{min-width:56px;max-width:92px}.armory-action button{font-size:7px;padding:7px 6px}.armory-card h3{font-size:11px}.armory-card p{font-size:9.5px}.armory-status{font-size:6.5px}}
+
+
+/* Guardian of the Nebula — expanded Shop/Hangar */
+
+.loadout-shell{margin-top:12px;padding:10px;border:1px solid rgba(157,231,255,.14);border-radius:14px;background:linear-gradient(145deg,rgba(8,15,31,.94),rgba(17,12,36,.9));box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}.loadout-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}.loadout-head b{font:10px 'Press Start 2P';color:var(--cyan2)}.loadout-head span{font-size:9px;color:var(--dim)}.loadout-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:7px}.loadout-tab{font:6.5px 'Press Start 2P';padding:8px 3px;border-radius:7px;border:1px solid rgba(157,231,255,.12);background:#0d1730;color:var(--dim)}.loadout-tab.active{color:var(--amber);border-color:rgba(255,209,102,.4);background:rgba(255,209,102,.08)}.loadout-panel{display:none}.loadout-panel.active{display:block}.loadout-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.loadout-slot{min-height:58px;padding:7px;border:1px solid rgba(157,231,255,.11);border-radius:9px;background:rgba(6,11,24,.72);display:flex;align-items:center;gap:7px;cursor:pointer}.loadout-slot .ls-icon{width:42px;height:42px;flex:none;border-radius:8px;background:radial-gradient(circle,rgba(157,231,255,.13),rgba(0,0,0,.25));display:flex;align-items:center;justify-content:center;overflow:hidden}.loadout-slot canvas{width:42px;height:42px}.loadout-slot .ls-text{min-width:0}.loadout-slot strong{display:block;font-size:9px}.loadout-slot small{display:block;color:var(--dim);font-size:8px;margin-top:3px}.loadout-empty{padding:10px;text-align:center;color:var(--dim);font-size:9px;border:1px dashed rgba(157,231,255,.13);border-radius:8px}.module-equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}.module-equip-slot{min-height:64px;border:1px solid rgba(157,231,255,.13);border-radius:9px;background:rgba(5,10,22,.65);padding:6px;display:flex;align-items:center;gap:6px}.module-equip-slot .mes-icon{width:42px;height:42px;flex:none}.module-equip-slot canvas{width:42px;height:42px}.module-equip-slot strong{font-size:8px}.module-equip-slot small{display:block;color:var(--dim);font-size:7px;margin-top:3px}
+@media(max-width:390px){.loadout-tabs{grid-template-columns:repeat(2,1fr)}.loadout-grid,.module-equip-grid{grid-template-columns:1fr}}
+
+  /* ===== Astro-style combat HUD ===== */
+  #astroCombatHud{position:absolute;left:0;right:0;bottom:12px;display:none;align-items:flex-end;justify-content:space-between;padding:0 18px;pointer-events:none;z-index:8}
+  .combat-weapon-box{width:178px;min-height:72px;padding:9px 12px 9px 66px;position:relative;background:linear-gradient(145deg,rgba(8,20,42,.92),rgba(9,14,30,.82));border:1px solid rgba(92,191,255,.34);box-shadow:0 0 18px rgba(38,159,255,.12),inset 0 1px 0 rgba(255,255,255,.05);clip-path:polygon(0 10px,10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);font-family:'Press Start 2P',monospace;pointer-events:auto;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:none;transition:transform .08s ease, filter .08s ease;}
+  .combat-weapon-box.right{ text-align:right; padding:9px 66px 9px 12px; }
+  .combat-weapon-box.pressed{transform:scale(.95);filter:brightness(1.35);border-color:rgba(255,209,102,.75);box-shadow:0 0 22px rgba(255,209,102,.4),inset 0 1px 0 rgba(255,255,255,.08);}
+  .combat-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px;
+    background:radial-gradient(circle,rgba(30,60,110,.65),rgba(4,8,18,.85));border:1px solid rgba(143,211,255,.4);box-shadow:0 0 10px rgba(70,160,255,.35),inset 0 0 8px rgba(0,0,0,.4);}
+  .combat-icon svg{width:72%;height:72%;filter:drop-shadow(0 0 5px rgba(255,255,255,.55));}
+  .combat-weapon-box.right .combat-icon{left:auto;right:8px;}
+  .combat-label{font-size:7px;color:#8FD3FF;letter-spacing:1px}.combat-name{font-size:9px;color:#fff;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.combat-count{font-size:11px;color:#9DE7FF;margin-top:5px}.combat-count.warn{color:#FF9F6B}
+  #energyMeter,#armorMeter{position:absolute;top:84px;bottom:92px;width:26px;display:none;z-index:8;pointer-events:none}
+  #energyMeter{left:10px}#armorMeter{right:10px}
+  #rapidBuffBadge,#shieldBuffBadge{position:absolute;bottom:46px;width:34px;z-index:8;display:none;pointer-events:none;flex-direction:column;align-items:center;gap:3px;}
+  #rapidBuffBadge{left:5px}#shieldBuffBadge{right:5px}
+  .buff-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;background:radial-gradient(circle,rgba(30,10,40,.8),rgba(4,4,10,.92));box-shadow:0 0 10px rgba(0,0,0,.4),inset 0 0 6px rgba(0,0,0,.5);}
+  #rapidBuffBadge .buff-icon{border:1px solid rgba(255,110,170,.65);box-shadow:0 0 10px rgba(255,63,122,.5),inset 0 0 6px rgba(0,0,0,.5);}
+  #shieldBuffBadge .buff-icon{border:1px solid rgba(90,190,255,.65);box-shadow:0 0 10px rgba(70,160,255,.5),inset 0 0 6px rgba(0,0,0,.5);}
+  .buff-bar-bg{width:100%;height:6px;border-radius:4px;background:rgba(8,10,20,.75);border:1px solid rgba(255,255,255,.16);overflow:hidden;}
+  .buff-bar-fill{height:100%;width:100%;transform-origin:left;}
+  #rapidBuffBadge .buff-bar-fill{background:linear-gradient(90deg,#FF3F7A,#FFB3CF);box-shadow:0 0 6px rgba(255,63,122,.6);}
+  #shieldBuffBadge .buff-bar-fill{background:linear-gradient(90deg,#1688D8,#8FE0FF);box-shadow:0 0 6px rgba(70,160,255,.6);}
+  .meter-label{display:none}
+  .meter-icon{position:absolute;left:50%;top:-30px;transform:translateX(-50%);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;
+    background:radial-gradient(circle,rgba(20,30,55,.95),rgba(6,10,22,.95));border:2px solid rgba(214,60,255,.6);
+    box-shadow:0 0 10px rgba(214,60,255,.55),inset 0 0 6px rgba(0,0,0,.5);}
+  #armorMeter .meter-icon{border-color:rgba(70,196,255,.6);box-shadow:0 0 10px rgba(70,196,255,.55),inset 0 0 6px rgba(0,0,0,.5);}
+  .meter-bg{position:absolute;left:0;top:0;bottom:0;width:100%;border-radius:13px;border:2px solid rgba(157,231,255,.32);background:rgba(8,14,28,.82);padding:3px;display:flex;align-items:flex-end;box-shadow:inset 0 0 12px rgba(0,0,0,.45),0 0 10px rgba(0,0,0,.3);overflow:hidden}
+  .meter-fill{width:100%;height:100%;transform-origin:bottom;background:linear-gradient(0deg,#B81EFF,#FF3F7A 55%,#E65BFF);box-shadow:0 0 12px rgba(214,60,255,.65);border-radius:9px;position:relative}
+  .meter-fill::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent 0 9px,rgba(2,4,10,.55) 9px 12px);pointer-events:none}
+  #armorMeter .meter-fill{background:linear-gradient(0deg,#1688D8,#22C9B0 55%,#5CF29A);box-shadow:0 0 12px rgba(70,196,255,.6)}
+  #armorMeter .meter-bg{border-color:rgba(102,217,239,.32)}
+  @media(max-width:700px){.combat-weapon-box{width:142px;padding-left:56px}.combat-weapon-box.right{padding-left:12px;padding-right:56px}.combat-icon{width:38px;height:38px;font-size:18px}.combat-name{font-size:8px}#astroCombatHud{padding:0 8px}.combat-weapon-box{min-height:65px}}
+  #customizePanel,#pauseCustomizeBtn{display:none!important}
+  #shopPanel #moduleTab,#shopPanel .tab-btn[data-tab="modules"]{display:none!important}
+
+/* Lapisan nebula lembut di background menu */
+  .astro-menu-nebula{
+    position:absolute; inset:-12%; z-index:2; pointer-events:none;
+    background:
+      radial-gradient(ellipse at 20% 38%,rgba(108,36,165,.20),transparent 27%),
+      radial-gradient(ellipse at 76% 30%,rgba(42,105,205,.19),transparent 29%),
+      radial-gradient(ellipse at 54% 72%,rgba(155,42,120,.13),transparent 25%);
+    filter:blur(22px);
+    animation:nebulaDrift 13s ease-in-out infinite alternate;
+  }
+  @keyframes nebulaDrift{
+    from{transform:translate3d(-1.5%,0,0) scale(1)}
+    to{transform:translate3d(1.5%,-1%,0) scale(1.045)}
+  }
+
+  /* Final menu atmosphere: nebula + stars, no diagonal scan */
+  .astro-scene{
+    background:
+      radial-gradient(circle at 14% 22%,rgba(255,255,255,.9) 0 1px,transparent 2px),
+      radial-gradient(circle at 29% 70%,rgba(170,220,255,.85) 0 1px,transparent 2px),
+      radial-gradient(circle at 44% 16%,rgba(255,255,255,.8) 0 1.2px,transparent 2px),
+      radial-gradient(circle at 61% 63%,rgba(140,205,255,.75) 0 1px,transparent 2px),
+      radial-gradient(circle at 78% 24%,rgba(255,255,255,.85) 0 1px,transparent 2px),
+      radial-gradient(circle at 91% 72%,rgba(170,220,255,.75) 0 1px,transparent 2px);
+  }
+
+  /* ==== HIGH SCORES ==== */
+  #missionPanel.high-scores-panel{ width:min(560px,92vw); text-align:center; }
+  .high-score-list{
+    margin-top:16px; padding:8px 12px; border:1px solid rgba(70,170,255,.28);
+    background:linear-gradient(180deg,rgba(9,25,48,.82),rgba(3,9,22,.94));
+    box-shadow:inset 0 0 25px rgba(55,140,255,.06),0 0 20px rgba(55,140,255,.08);
+    border-radius:8px;
+  }
+  .high-score-row{
+    display:grid; grid-template-columns:58px 1fr 130px; gap:10px; align-items:center;
+    padding:14px 8px; border-bottom:1px solid rgba(120,190,255,.10);
+    font:10px 'Press Start 2P'; color:#d7ecff; text-align:left;
+  }
+  .high-score-row:last-child{border-bottom:0}
+  .high-score-rank{color:#67d5ff}
+  .high-score-points{text-align:right;color:#fff}
+  .high-score-row:first-child .high-score-rank,.high-score-row:first-child .high-score-points{color:var(--amber);}
+
+/* moved from a stray <style> tag after </html> in the original file */
+.high-scores-panel .mission-card,.high-scores-panel .mission-bar-bg,.high-scores-panel .mission-reward{display:none!important;}
